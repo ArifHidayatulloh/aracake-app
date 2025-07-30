@@ -7,60 +7,132 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+Aracake App
+Aplikasi web untuk manajemen pesanan kue dan roti, dirancang untuk memudahkan pemilik toko kue dalam mengelola produk, pesanan, dan pelanggan secara efisien. Proyek ini bertujuan untuk menyediakan solusi digital yang intuitif dan responsif untuk bisnis kue kecil hingga menengah.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Daftar Isi
+Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Teknologi yang Digunakan
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Instalasi
 
-## Learning Laravel
+Penggunaan
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Kontribusi
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Lisensi
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Kontak
 
-## Laravel Sponsors
+Fitur Utama
+Aracake App hadir dengan serangkaian fitur yang dirancang untuk mengoptimalkan operasional bisnis kue Anda:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Manajemen Produk: Tambah, edit, dan hapus daftar kue dan roti dengan detail seperti harga, deskripsi, dan gambar.
 
-### Premium Partners
+Manajemen Pesanan: Lacak status pesanan dari awal hingga selesai, termasuk detail pelanggan dan item pesanan.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Manajemen Pelanggan: Simpan data pelanggan untuk memudahkan komunikasi dan melihat riwayat pesanan.
 
-## Contributing
+Dashboard Interaktif: Tampilan ringkasan penjualan dan pesanan yang mudah dipahami secara visual.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Desain Responsif: Antarmuka yang dioptimalkan untuk berbagai perangkat (desktop, tablet, mobile).
 
-## Code of Conduct
+Teknologi yang Digunakan
+Proyek ini dibangun menggunakan tumpukan teknologi modern yang andal dan dapat diskalakan:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Backend:
 
-## Security Vulnerabilities
+PHP 8.x
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Laravel Framework 10.x
 
-## License
+MySQL (Database)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Frontend:
+
+HTML5
+
+CSS3 (dengan Tailwind CSS)
+
+JavaScript
+
+Deployment (Opsional):
+
+Docker
+
+Nginx
+
+Instalasi
+Ikuti langkah-langkah berikut untuk menginstal dan menjalankan proyek ini di lingkungan lokal Anda:
+
+Clone repositori:
+
+git clone https://github.com/nama-pengguna-anda/aracake-app.git
+cd aracake-app
+
+Instal dependensi Composer:
+
+composer install
+
+Buat file .env dan atur kunci aplikasi:
+
+cp .env.example .env
+php artisan key:generate
+
+Konfigurasi database di file .env:
+Buka file .env dan sesuaikan pengaturan database Anda:
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=aracake_db # Ganti dengan nama database Anda
+DB_USERNAME=root     # Ganti dengan username database Anda
+DB_PASSWORD=         # Ganti dengan password database Anda
+
+Jalankan migrasi database dan seed data (opsional):
+
+php artisan migrate --seed
+
+Jalankan server pengembangan Laravel:
+
+php artisan serve
+
+Akses aplikasi:
+Buka browser Anda dan kunjungi http://127.0.0.1:8000 (atau port yang ditampilkan di terminal Anda).
+
+Penggunaan
+Setelah instalasi berhasil, Anda dapat:
+
+Login: Gunakan kredensial default (jika disediakan dalam seed) atau daftarkan akun baru melalui halaman registrasi.
+
+Tambahkan Produk: Navigasi ke bagian manajemen produk untuk menambahkan item kue/roti baru.
+
+Kelola Pesanan: Perbarui status pesanan saat diterima, diproses, atau selesai.
+
+Lihat Laporan: Periksa dashboard untuk melihat ringkasan penjualan dan metrik penting lainnya.
+
+Kontribusi
+Kami menyambut kontribusi dari siapa pun! Jika Anda ingin berkontribusi untuk membuat aplikasi ini lebih baik, silakan ikuti panduan di bawah ini:
+
+Fork repositori ini.
+
+Buat branch baru untuk fitur atau perbaikan Anda (git checkout -b feature/nama-fitur-baru).
+
+Lakukan perubahan Anda dan commit (git commit -m 'Tambahkan fitur baru').
+
+Push ke branch Anda (git push origin feature/nama-fitur-baru).
+
+Buat Pull Request (PR) ke branch main repositori ini.
+
+Lisensi
+Proyek ini dilisensikan di bawah Lisensi MIT. Lihat file LICENSE.md untuk detail lebih lanjut.
+
+Kontak
+Jika Anda memiliki pertanyaan, saran, atau ingin berkolaborasi, jangan ragu untuk menghubungi:
+
+Nama Anda: [Nama Lengkap Anda]
+
+Email: [email@example.com]
+
+GitHub: [https://github.com/nama-pengguna-anda]
