@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\Delivery\DeliveryMethodController;
 use App\Http\Controllers\Admin\Order\OrderStatusController;
 use App\Http\Controllers\Admin\Payment\PaymentMethodController;
 use App\Http\Controllers\Admin\Product\CategoryController;
+use App\Http\Controllers\Admin\Product\ProductController;
 use App\Http\Controllers\Admin\System\SystemSettingController;
 use App\Http\Controllers\Admin\System\WorkingHourController;
 use Illuminate\Support\Facades\Route;
@@ -66,9 +67,24 @@ Route::prefix('admin')->group(function () {
     });
     // ---- End Pengaturan Sistem ----//
 
-     // Rute untuk Working Hours (hanya index, edit, update)
+    // ---- Rute untuk Working Hours (hanya index, edit, update) ---- //
     Route::resource('working-hour', WorkingHourController::class)->only([
-        'index', 'edit', 'update'
+        'index',
+        'edit',
+        'update'
     ]);
+    // ---- End Rute untuk Working Hours ---- //
+
+    // ---- Rute untuk Product ---- //
+    Route::prefix('product')->group(function () {
+        Route::get('/index', [ProductController::class, 'index'])->name('admin.product.index');
+        Route::get('/create', [ProductController::class, 'create'])->name('admin.product.create');
+        Route::post('/store', [ProductController::class, 'store'])->name('admin.product.store');
+        Route::get('{product:slug}', [ProductController::class, 'show'])->name('admin.product.show');
+        Route::get('/edit/{product:slug}', [ProductController::class, 'edit'])->name('admin.product.edit');
+        Route::put('/update/{product:slug}', [ProductController::class, 'update'])->name('admin.product.update');
+    });
+    // ---- End Rute untuk Product ---- //
+
 });
 // ---- End Admin ---- //

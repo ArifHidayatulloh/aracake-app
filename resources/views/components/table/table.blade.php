@@ -18,6 +18,6 @@
 </div>
 @if ($pagination)
     <div class="mt-4 text-right">
-        {{ $pagination }}
+        {!! $pagination !!}
     </div>
 @endif

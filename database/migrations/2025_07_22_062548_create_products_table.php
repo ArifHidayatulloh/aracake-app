@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('sku')->unique();
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
-            $table->integer('stock')->default(0)->nullable();
             $table->integer('preparation_time_days')->default(2);
             $table->boolean('is_available')->default(true);
             $table->boolean('is_preorder_only')->default(false);

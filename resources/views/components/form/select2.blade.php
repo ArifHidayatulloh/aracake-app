@@ -1,3 +1,14 @@
+@props([
+    'name',
+    'label',
+    'options',
+    'id',
+    'selected' => null, // Default value if not provided
+    'placeholder' => 'Pilih...', // Default value if not provided
+    'required' => false, // <-- INI YANG PALING PENTING DITAMBAHKAN
+    'error' => null // Opsional, untuk handling error dari form
+])
+
 <div class="form-group">
     <label for="{{ $id }}" class="block text-sm font-medium text-gray-700 mb-1">
         {{ $label }}
@@ -38,6 +49,8 @@
                     // Set nilai awal Select2
                     if (this.selectedOption) {
                         $('#{{ $id }}').val(this.selectedOption).trigger('change');
+                    } else if ('{{ $placeholder }}' && !'{{ $selected }}' && !this.required) { // Handle placeholder default behavior
+                        $('#{{ $id }}').val(null).trigger('change');
                     }
                 });
 
@@ -50,9 +63,13 @@
             }
         }"
     >
-        <option value="">{{ $placeholder }}</option>
+        {{-- Opsi placeholder - hanya jika tidak required atau jika ada placeholder yang disetel --}}
+        @if (!$required || $placeholder)
+            <option value="">{{ $placeholder }}</option>
+        @endif
+
         @foreach ($options as $option)
-            <option value="{{ $option['id'] }}" {{ ($selected == $option['id']) ? 'selected' : '' }}>
+            <option value="{{ $option['id'] }}" {{ ((string)$selected === (string)$option['id']) ? 'selected' : '' }}>
                 {{ $option['name'] }}
             </option>
         @endforeach

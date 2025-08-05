@@ -21,11 +21,10 @@ class Product extends Model
         'sku',
         'description',
         'price',
-        'stock',
         'preparation_time_days',
         'is_available',
         'is_preorder_only',
-        'image_url', // Thumbnail/gambar utama
+        'image_url', 
         'is_recommended',
         'is_featured',
         'is_active',
