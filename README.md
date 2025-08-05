@@ -10,7 +10,8 @@
 Aracake App
 Aplikasi web untuk manajemen pesanan kue dan roti, dirancang untuk memudahkan pemilik toko kue dalam mengelola produk, pesanan, dan pelanggan secara efisien. Proyek ini bertujuan untuk menyediakan solusi digital yang intuitif dan responsif untuk bisnis kue kecil hingga menengah.
 
-Daftar Isi
+Daftar Isi:
+
 Fitur Utama
 
 Teknologi yang Digunakan
