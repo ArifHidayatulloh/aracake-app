@@ -53,7 +53,7 @@ class OrderStatusController extends Controller
         }
 
         // Pass the normalized parameters to appends to maintain filters in pagination links
-        $orderStatuses = $orderStatusQuery->paginate(10)->appends([
+        $orderStatuses = $orderStatusQuery->orderBy('order', 'asc')->paginate(10)->appends([
             'search' => $searchParam,
             'is_active' => $isActiveParam,
         ]);
@@ -153,6 +153,6 @@ class OrderStatusController extends Controller
      */
     public function destroy(OrderStatus $orderStatus)
     {
-        
+
     }
 }

@@ -20,7 +20,7 @@
 
     {{-- Table payment-method --}}
     @php
-        $headers = ['Nama Metode', 'Detail Akun', 'Status', 'Aksi'];
+        $headers = ['Nama Metode','Nomor Akun', 'Detail Akun', 'Status', 'Aksi'];
     @endphp
 
     <x-table.table :headers="$headers" :pagination="$paymentMethods->links()">
@@ -28,6 +28,10 @@
             <tr>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {{ $paymentMethod->method_name }}
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ $paymentMethod->account_number }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {{ $paymentMethod->account_details }}
@@ -41,7 +45,9 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <a href="{{ route('admin.payment-method.edit', $paymentMethod->id) }}"
-                            class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                            class="text-yellow-600 hover:text-yellow-900">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
                     </td>
             </tr>
         @empty

@@ -18,7 +18,8 @@ class DatabaseSeeder extends Seeder
             UserAddress::class,
             CategorySeeder::class,
             ProductSeeder::class,
-            SystemSettingSeeder::class
+            SystemSettingSeeder::class,
+            WorkingHourSeeder::class
         ]);
 
 

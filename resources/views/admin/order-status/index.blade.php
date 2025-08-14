@@ -9,15 +9,15 @@
 
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-gray-800">Status Pesanan</h3>
-            <x-button.link-primary href="{{ route('admin.order-status.create') }}">
+            {{-- <x-button.link-primary href="{{ route('admin.order-status.create') }}">
                 <x-heroicon-o-plus class="w-5 h-5 mr-2" /> Tambah Status
                 Pesanan
-            </x-button.link-primary>
+            </x-button.link-primary> --}}
         </div>
 
         {{-- Table order-status --}}
         @php
-            $headers = ['Nama Status','Deskripsi','Warna', 'Status', 'Aksi'];
+            $headers = ['Nama Status','Urutan','Deskripsi','Warna', 'Status', 'Aksi'];
         @endphp
 
         <x-table.table :headers="$headers" :pagination="$orderStatuses->links()">
@@ -26,6 +26,10 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ $orderStatus->status_name }}
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ $orderStatus->order }}
+                    </td>
+
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ $orderStatus->description }}
                     </td>
@@ -46,7 +50,9 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <a href="{{ route('admin.order-status.edit', $orderStatus->id) }}"
-                            class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                            class="text-yellow-600 hover:text-yellow-900">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
                     </td>
                 </tr>
             @empty

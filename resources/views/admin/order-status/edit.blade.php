@@ -13,6 +13,9 @@
                 <x-form.input typ="text" name="status_name" label="Nama Status" error="$errors->first('status_name')"
                     value="{{ $orderStatus->status_name }}" required />
 
+                <x-form.input typ="text" name="order" label="Urutan" error="$errors->first('order')"
+                    value="{{ $orderStatus->order }}" required readonly />
+
                 <x-form.textarea name="description" label="Deskripsi Status" error="$errors->first('description')"
                     rows="4" value="{{ $orderStatus->description }}" />
 

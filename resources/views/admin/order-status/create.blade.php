@@ -16,6 +16,8 @@
                 @csrf
                 <x-form.input typ="text" name="status_name" label="Nama Status" error="$errors->first('status_name')" required />
 
+                <x-form.input typ="text" name="order" label="Urutan" error="$errors->first('order')" required />
+
                 <x-form.textarea name="description" label="Deskripsi Status" error="$errors->first('description')"
                     rows="4" />
 

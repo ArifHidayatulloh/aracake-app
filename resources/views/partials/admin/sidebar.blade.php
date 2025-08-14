@@ -29,7 +29,7 @@
         </div>
         <ul class="space-y-1">
             <li>
-                <a href="/"
+                <a href="{{ route('admin.dashboard') }}"
                     class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-white/5 text-purple-200 {{ request()->routeIs('admin.dashboard') ? 'bg-white/5' : '' }}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -40,15 +40,28 @@
                 </a>
             </li>
             <li>
-                <a href="" {{-- Asumsi route untuk daftar pesanan --}}
-                    class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-white/5 text-purple-200 {{ request()->routeIs('admin.orders.*') ? 'bg-white/5' : '' }}">
+                <a href="{{ route('admin.order.index') }}" {{-- Asumsi route untuk daftar pesanan --}}
+                    class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-white/5 text-purple-200 {{ request()->routeIs('admin.order.index') || request()->routeIs('admin.order.show') ? 'bg-white/5' : '' }}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z">
                         </path>
                     </svg>
                     Pesanan
-                    <span class="ml-auto px-2 py-0.5 bg-purple-600/30 text-xs rounded-full">15</span>
+                    @php
+                        $order = App\Models\Order::all();
+                        $count = $order->where('is_finish', false)->where('is_cancelled')->count();
+                    @endphp
+                    <span class="ml-auto px-2 py-0.5 bg-purple-600/30 text-xs rounded-full">
+                        {{ $count }}
+                    </span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('admin.order.report') }}" {{-- Asumsi route untuk daftar pesanan --}}
+                    class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-white/5 text-purple-200 {{ request()->routeIs('admin.order.report') ? 'bg-white/5' : '' }}">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Laporan Penjualan
                 </a>
             </li>
 
@@ -76,8 +89,7 @@
 
         </ul>
 
-
-        <div class="px-4 py-2 mt-8 text-xs font-semibold text-purple-300 uppercase tracking-wider">
+        <div class="px-4 py-2 text-xs font-semibold text-purple-300 uppercase tracking-wider">
             Lainnya
         </div>
         <ul class="space-y-1">
@@ -102,13 +114,13 @@
                     Metode Pembayaran
                 </a>
             </li>
-            <li>
-                <a href="{{ route('working-hour.index') }}" {{-- Asumsi route untuk pengaturan sistem --}}
+            {{-- <li>
+                <a href="{{ route('working-hour.index') }}"
                     class="flex items-center px-4 py-3 rounded-lg hover:bg-white/5 text-purple-200 transition-colors {{ request()->routeIs('admin.working-hour.*') ? 'bg-white/5' : '' }}">
                     <x-heroicon-o-clock class="w-5 h-5 mr-3" />
                     Pengaturan Jam Kerja
                 </a>
-            </li>
+            </li> --}}
             <li>
                 <a href="{{ route('admin.system-setting.index') }}" {{-- Asumsi route untuk pengaturan sistem --}}
                     class="flex items-center px-4 py-3 rounded-lg hover:bg-white/5 text-purple-200 transition-colors {{ request()->routeIs('admin.system-setting.*') ? 'bg-white/5' : '' }}">

@@ -17,6 +17,8 @@
             @csrf
             <x-form.input typ="text" name="method_name" label="Nama Metode" error="$errors->first('method_name')" required />
 
+            <x-form.input typ="text" name="account_number" label="Nomor Akun" error="$errors->first('account_number')" />
+
             <x-form.textarea name="account_details" label="Detail Akun" error="$errors->first('account_details')"
                 rows="4" />
 

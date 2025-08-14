@@ -54,4 +54,20 @@ class OrderLog extends Model
     {
         return $this->belongsTo(User::class, 'actor_user_id');
     }
+    
+    /**
+     * Metode statis untuk membuat entri log baru.
+     *
+     * @param array $data
+     * @return OrderLog
+     */
+    public static function log(array $data)
+    {
+        // Gabungkan data yang diberikan dengan timestamp saat ini
+        $logData = array_merge([
+            'timestamp' => now(), // Atau Anda bisa mengandalkan created_at
+        ], $data);
+
+        return static::create($logData);
+    }
 }

@@ -16,15 +16,19 @@ class Order extends Model
      */
     protected $fillable = [
         'user_id',
+        'no_transaction',
         'order_status_id',
         'delivery_method_id',
         'pickup_delivery_address_id',
         'order_date', // Pastikan ini dikelola atau gunakan default DB
         'pickup_delivery_date',
+        'payment_method_id',
         'total_amount',
         'delivery_cost',
         'notes',
+        'is_cancelled',
         'cancellation_reason',
+        'is_finish'
     ];
 
     /**
@@ -61,6 +65,11 @@ class Order extends Model
     public function deliveryMethod(): BelongsTo
     {
         return $this->belongsTo(DeliveryMethod::class);
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 
     /**

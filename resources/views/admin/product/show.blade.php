@@ -98,11 +98,6 @@
                     {{-- Product Badges and Details --}}
                     <div class="mt-6 text-sm text-gray-600 space-y-4">
                         <div class="flex items-center space-x-3 flex-wrap">
-                            @if ($product->is_preorder_only)
-                                <span class="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800">
-                                    Pre-order
-                                </span>
-                            @endif
                             <span class="font-semibold px-3 py-1 text-xs rounded-full border {{ $product->is_available ? 'text-green-800 bg-green-100 border-green-200' : 'text-red-800 bg-red-100 border-red-200' }}">
                                 Status: {{ $product->is_available ? 'Tersedia' : 'Tidak Tersedia' }}
                             </span>

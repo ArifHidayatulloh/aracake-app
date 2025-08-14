@@ -39,7 +39,6 @@ class ProductSeeder extends Seeder
                     'sku' => strtoupper(Str::random(8)),
                     'description' => $faker->sentence(10),
                     'price' => $faker->numberBetween(15000, 50000),
-                    'stock' => $faker->numberBetween(10, 100),
                     'preparation_time_days' => $faker->numberBetween(1, 3),
                     'is_available' => true,
                     'is_preorder_only' => false,

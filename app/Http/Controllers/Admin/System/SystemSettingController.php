@@ -80,15 +80,6 @@ class SystemSettingController extends Controller
             return redirect()->back()->with('error', 'Terjadi kesalahan saat membuat pengaturan sistem: ' . $e->getMessage());
         }
     }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -126,13 +117,5 @@ class SystemSettingController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui pengaturan sistem: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

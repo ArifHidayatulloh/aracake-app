@@ -13,16 +13,20 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->string('no_transaction')->unique();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('order_status_id')->constrained('order_statuses')->onDelete('restrict');
             $table->foreignId('delivery_method_id')->constrained('delivery_methods')->onDelete('restrict');
             $table->foreignId('pickup_delivery_address_id')->nullable()->constrained('user_addresses')->onDelete('set null'); // Jika diantar ke alamat tertentu
+            $table->foreignId('payment_method_id')->constrained('payment_methods')->onDelete('restrict');
             $table->dateTime('order_date')->useCurrent();
             $table->date('pickup_delivery_date');
             $table->decimal('total_amount', 10, 2);
             $table->decimal('delivery_cost', 10, 2)->default(0.00);
             $table->text('notes')->nullable();
+            $table->boolean('is_cancelled')->default(false);
             $table->text('cancellation_reason')->nullable();
+            $table->boolean('is_finish')->default(false);
             $table->timestamps();
         });
     }

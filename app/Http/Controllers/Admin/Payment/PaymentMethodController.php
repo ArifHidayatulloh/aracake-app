@@ -16,12 +16,14 @@ class PaymentMethodController extends Controller
     {
         $rules = [
             'method_name' => 'required|unique:payment_methods,method_name,' . $paymentMethodId,
-            'account_details' => 'required',
+            'account_number' => 'nullable|unique:payment_methods,account_number,' . $paymentMethodId,
+            'account_details' => 'nullable',
             'is_active' => 'required',
         ];
 
         $messages = [
             'method_name.unique' => 'Metode pembayaran sudah ada.',
+            'account_number.unique' => 'Nomor akun sudah ada.',
             'method_name.required' => 'Nama metode wajib diisi.',
             'account_details.required' => 'Detail akun wajib diisi.',
             'is_active.required' => 'Status wajib diisi.',
@@ -40,7 +42,8 @@ class PaymentMethodController extends Controller
         $paymentMethodQuery = PaymentMethod::query();
 
         if (!empty($searchParam)) {
-            $paymentMethodQuery->where('method_name', 'like', '%' . $searchParam . '%');
+            $paymentMethodQuery->where('method_name', 'like', '%' . $searchParam . '%')
+                ->orWhere('account_number', 'like', '%' . $searchParam . '%');
         }
 
         // Only apply is_active filter if it's explicitly set (0 or 1)
@@ -98,14 +101,6 @@ class PaymentMethodController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(PaymentMethod $paymentMethod)
@@ -142,13 +137,5 @@ class PaymentMethodController extends Controller
         } catch (Exception $e) {
             return redirect()->route('admin.payment-method.index')->with('error', 'Terjadi kesalahan saat memperbarui metode pembayaran.');
         }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

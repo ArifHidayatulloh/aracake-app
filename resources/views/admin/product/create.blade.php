@@ -131,13 +131,6 @@
                             <label for="is_available" class="ml-2 block text-sm text-gray-900">Produk Tersedia</label>
                         </div>
                         <div class="flex items-center">
-                            <input type="hidden" name="is_preorder_only" value="0">
-                            <input type="checkbox" name="is_preorder_only" id="is_preorder_only" value="1"
-                                class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                                {{ old('is_preorder_only') ? 'checked' : '' }}>
-                            <label for="is_preorder_only" class="ml-2 block text-sm text-gray-900">Hanya Pre-order</label>
-                        </div>
-                        <div class="flex items-center">
                             <input type="hidden" name="is_recommended" value="0">
                             <input type="checkbox" name="is_recommended" id="is_recommended" value="1"
                                 class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"

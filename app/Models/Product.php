@@ -24,7 +24,7 @@ class Product extends Model
         'preparation_time_days',
         'is_available',
         'is_preorder_only',
-        'image_url', 
+        'image_url',
         'is_recommended',
         'is_featured',
         'is_active',
@@ -39,6 +39,8 @@ class Product extends Model
         'price' => 'decimal:2',
         'preparation_time_days' => 'integer',
         'is_available' => 'boolean',
+        'is_recommended' => 'boolean',
+        'is_featured' => 'boolean',
         'is_preorder_only' => 'boolean',
     ];
 

@@ -25,7 +25,7 @@
                     <x-form.select2 name="category" label="Kategori" :options="$categories
                         ->map(fn($cat) => ['id' => $cat->id, 'name' => $cat->name])
                         ->prepend(['id' => '', 'name' => 'Semua Kategori'])" id="category" :selected="request('category')"
-                        {{-- Menggunakan request('category') untuk nilai terpilih --}} placeholder="Pilih Kategori" {{-- Pastikan ini ada! --}} />
+                        {{-- Menggunakan request('category') untuk nilai terpilih --}} placeholder="Pilih Kategori" {{-- Pastikan ini ada! --}}  />
 
                     {{-- Status Filter --}}
                     <div>
@@ -47,30 +47,6 @@
                             <option value="">Semua Rekomendasi</option>
                             <option value="1" {{ request('is_recommended') == '1' ? 'selected' : '' }}>Ya</option>
                             <option value="0" {{ request('is_recommended') == '0' ? 'selected' : '' }}>Tidak</option>
-                        </select>
-                    </div>
-
-                    {{-- Preorder Filter --}}
-                    <div>
-                        <label for="is_preorder" class="block text-sm font-medium text-gray-700 mb-1">Preorder:</label>
-                        <select name="is_preorder" id="is_preorder"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                            <option value="">Semua Preorder</option>
-                            <option value="1" {{ request('is_preorder') == '1' ? 'selected' : '' }}>Ya</option>
-                            <option value="0" {{ request('is_preorder') == '0' ? 'selected' : '' }}>Tidak</option>
-                            </option>
-                        </select>
-                    </div>
-
-                    {{-- Preorder Hanya Filter --}}
-                    <div>
-                        <label for="is_preorder_only" class="block text-sm font-medium text-gray-700 mb-1">Hanya
-                            Preorder:</label>
-                        <select name="is_preorder_only" id="is_preorder_only"
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                            <option value="">Semua</option>
-                            <option value="1" {{ request('is_preorder_only') == '1' ? 'selected' : '' }}>Ya</option>
-                            <option value="0" {{ request('is_preorder_only') == '0' ? 'selected' : '' }}>Tidak</option>
                         </select>
                     </div>
 
@@ -96,10 +72,10 @@
                     {{-- Tombol Submit --}}
                     <div class="col-span-full xl:col-span-1 flex justify-end xl:justify-start items-center pt-4 md:pt-0 gap-1">
                         <button type="submit"
-                            class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                            <i class="fa-solid fa-magnifying-glass mr-2"></i> Terapkan Filter
+                            class="inline-flex items-center px-5 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150 text-center">
+                            <i class="fa-solid fa-magnifying-glass"></i> Terapkan Filter
                         </button>
-                        <a href="{{ route('admin.product.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"> Reset</a>
+                        <a href="{{ route('admin.product.index') }}" class="inline-flex items-center px-4 py-2   border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"> Reset</a>
                     </div>
                 </div>
             </form>
@@ -113,7 +89,6 @@
                 'Kategori',
                 'Harga',
                 'Tersedia',
-                'Preorder', // Kolom ini seharusnya untuk is_preorder_only jika memang itu yang dimaksud
                 'Rekomendasi',
                 'Fitur',
                 'Status',
@@ -146,20 +121,6 @@
                                 class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Tidak</span>
                         @endif
                     </td>
-                    {{-- Kolom Preorder (is_preorder_only) --}}
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        @if ($product->is_preorder_only)
-                            <span
-                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Ya</span>
-                        @else
-                            <span
-                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Tidak</span>
-                        @endif
-                    </td>
-                    {{-- Hapus duplikasi kolom 'Preorder Hanya' --}}
-                    {{-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ $product->is_preorder_only ? 'Ya' : 'Tidak' }}
-                    </td> --}}
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         @if ($product->is_recommended)
                             <span
@@ -191,19 +152,19 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <a href="{{ route('admin.product.show', $product->slug) }}"
                             class="text-indigo-600 hover:text-indigo-900 mr-3">
-                            Detail
+                            <i class="fa-solid fa-eye"></i>
                         </a>
                         <a href="{{ route('admin.product.edit', $product->slug) }}"
-                            class="text-indigo-600 hover:text-indigo-900 mr-3">
-                            Edit
+                            class="text-yellow-600 hover:text-indigo-900 mr-3">
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </a>
                         {{-- Form untuk Delete --}}
-                        <form action="" method="POST" class="inline-block"
+                        <form action="{{ route('admin.product.destroy', $product->slug) }}" method="POST" class="inline-block"
                             onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-red-600 hover:text-red-900">
-                                <i class="fa-solid fa-trash-can"></i> Hapus
+                                <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </form>
                     </td>

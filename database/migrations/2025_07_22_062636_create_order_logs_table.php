@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->timestamp('timestamp')->useCurrent();
             $table->foreignId('actor_user_id')->nullable()->constrained('users')->onDelete('set null'); // Admin/user yang melakukan aksi
-            $table->enum('event_type', ['STATUS_CHANGE', 'COMMENT', 'PAYMENT_CONFIRMED', 'DELIVERY_ASSIGNED', 'ORDER_CREATED', 'ORDER_CANCELLED']);
+            $table->enum('event_type', ['ORDER_CREATED','PAYMENT_PROOF_UPLOADED', 'PAYMENT_CONFIRMED','ORDER_PROCESSED', 'DELIVERY_ASSIGNED', 'ORDER_CANCELLED','ORDER_COMPLETED']);
             $table->string('old_value', 255)->nullable();
             $table->string('new_value', 255)->nullable();
             $table->text('message')->nullable();

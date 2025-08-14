@@ -119,4 +119,20 @@ class User extends Authenticatable
     {
         return $this->hasRole(UserRole::Customer);
     }
+
+    /**
+     * Cart
+     */
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
+    }
+
+    /**
+     * cart items
+     */
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }

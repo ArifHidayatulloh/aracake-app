@@ -15,9 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->unique()->constrained('orders')->onDelete('cascade');
             $table->foreignId('payment_method_id')->constrained('payment_methods')->onDelete('restrict');
-            $table->decimal('amount_paid', 10, 2);
             $table->dateTime('payment_date')->useCurrent();
-            $table->string('transaction_id', 100)->nullable();
             $table->string('proof_of_payment_url')->nullable();
             $table->boolean('is_confirmed')->default(false);
             $table->foreignId('confirmed_by_user_id')->nullable()->constrained('users')->onDelete('set null');

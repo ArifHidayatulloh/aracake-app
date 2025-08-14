@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Product;
 
 use App\Enums\LogLevel;
 use App\Http\Controllers\Controller;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductImage;
@@ -34,7 +35,6 @@ class ProductController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'preparation_time_days' => ['required', 'integer', 'min:0'],
             'is_available' => ['boolean'],
-            'is_preorder_only' => ['boolean'],
             'is_recommended' => ['boolean'],
             'is_featured' => ['boolean'],
             'is_active' => ['boolean'],
@@ -140,7 +140,6 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'preparation_time_days' => 'required|integer|min:1',
             'is_available' => 'boolean',
-            'is_preorder_only' => 'boolean',
             'is_recommended' => 'boolean',
             'is_featured' => 'boolean',
             'images' => 'required|array|min:1',
@@ -162,7 +161,6 @@ class ProductController extends Controller
                 'price' => $request->price,
                 'preparation_time_days' => $request->preparation_time_days,
                 'is_available' => $request->boolean('is_available', true),
-                'is_preorder_only' => $request->boolean('is_preorder_only'),
                 'is_recommended' => $request->boolean('is_recommended'),
                 'is_featured' => $request->boolean('is_featured'),
                 'is_active' => true,
@@ -264,7 +262,6 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'preparation_time_days' => 'required|integer|min:1',
             'is_available' => 'boolean',
-            'is_preorder_only' => 'boolean',
             'is_recommended' => 'boolean',
             'is_featured' => 'boolean',
             'images' => 'required|array|min:1',
@@ -286,7 +283,6 @@ class ProductController extends Controller
                 'price' => $request->price,
                 'preparation_time_days' => $request->preparation_time_days,
                 'is_available' => $request->boolean('is_available', true),
-                'is_preorder_only' => $request->boolean('is_preorder_only'),
                 'is_recommended' => $request->boolean('is_recommended'),
                 'is_featured' => $request->boolean('is_featured'),
             ]);
@@ -392,5 +388,33 @@ class ProductController extends Controller
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan saat memperbarui produk: ' . $e->getMessage());
         }
+    }
+
+    public function destroy(Product $product)
+    {
+        $checkOrderItems = OrderItem::where('product_id', $product->id)->first();
+
+        if ($checkOrderItems) {
+            return redirect()->back()->with('error', 'Produk tidak dapat dihapus karena masih digunakan dalam pesanan.');
+        }
+
+        $product->delete();
+
+        // ---- Catat Aktivitas ke SystemLog ---- //
+        SystemLog::log(
+            LogLevel::INFO->value,
+            'PRODUCT_DELETED',
+            'Produk "' . $product->name . '" telah berhasil dihapus oleh ' . (Auth::user()->name ?? 'Pengguna Tidak Dikenal') . '.',
+            [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'deleted_by_user_id' => Auth::id(),
+            ]
+        );
+        // ---- End Log ---- //
+
+        return redirect()
+            ->route('admin.product.index')
+            ->with('success', 'Produk berhasil dihapus!');
     }
 }

@@ -13,6 +13,7 @@ class OrderStatus extends Model
      */
     protected $fillable = [
         'status_name',
+        'order',
         'description',
         'status_color',
         'is_active',

@@ -21,7 +21,6 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
             $table->integer('preparation_time_days')->default(2);
             $table->boolean('is_available')->default(true);
-            $table->boolean('is_preorder_only')->default(false);
             $table->string('image_url')->nullable(); // Untuk thumbnail/gambar utama
             $table->boolean('is_recommended')->default(false);
             $table->boolean('is_featured')->default(false);

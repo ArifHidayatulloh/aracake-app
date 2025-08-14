@@ -49,7 +49,9 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <a href="{{ route('admin.system-setting.edit', $systemSetting->id) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                        <a href="{{ route('admin.system-setting.edit', $systemSetting->id) }}" class="text-yellow-600 hover:text-yellow-900">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
                     </td>
                 </tr>
             @empty
