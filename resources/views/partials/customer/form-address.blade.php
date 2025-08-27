@@ -42,7 +42,8 @@
 
                     <div class="flex items-center">
                         <input type="checkbox" name="is_default" id="is_default"
-                            class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded" value="{{ 'checked' ? 1 : 0 }}">
+                            class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                            value="{{ 'checked' ? 1 : 0 }}">
                         <label for="is_default" class="ml-2 block text-sm text-gray-700">
                             Jadikan alamat utama
                         </label>
@@ -76,8 +77,12 @@
     }
 
     // Handle form submission dengan AJAX
+    // Handle form submission dengan AJAX
     document.getElementById('addressForm').addEventListener('submit', function(e) {
         e.preventDefault();
+
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true; // Nonaktifkan tombol
 
         const formData = new FormData(this);
 
@@ -89,18 +94,28 @@
                 },
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    // Re-enable the button if an error occurs
+                    submitButton.disabled = false;
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     // Refresh halaman untuk menampilkan alamat baru
                     location.reload();
                 } else {
                     alert('Gagal menyimpan alamat: ' + (data.message || 'Terjadi kesalahan'));
+                    // Re-enable the button if the request was successful but the action failed
+                    submitButton.disabled = false;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('Terjadi kesalahan saat menyimpan alamat');
+                // Re-enable the button on fetch error
+                submitButton.disabled = false;
             });
     });
 </script>

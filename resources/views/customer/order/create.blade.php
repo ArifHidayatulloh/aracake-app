@@ -45,30 +45,38 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Alamat Pengiriman *</label>
 
                                 @forelse ($userAddresses as $address)
-                                    <label
-                                        class="flex items-start p-3 border border-gray-200 rounded-lg mb-2 cursor-pointer hover:border-purple-500">
-                                        <input type="radio" name="pickup_delivery_address_id" value="{{ $address->id }}"
-                                            required class="mt-1 text-purple-600 focus:ring-purple-500"
-                                            {{ $address->is_default ? 'checked' : '' }}>
-                                        <div class="ml-3">
-                                            <span class="block font-medium text-gray-800">
-                                                {{ $address->address_line1 }}
-                                                @if ($address->address_line2)
-                                                    , {{ $address->address_line2 }}
-                                                @endif
-                                            </span>
-                                            <span class="block text-sm text-gray-500">
-                                                {{ $address->city }}, {{ $address->province }} -
-                                                {{ $address->postal_code }}
-                                            </span>
-                                            @if ($address->is_default)
-                                                <span
-                                                    class="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">
-                                                    Alamat Utama
+                                    <div class="alamat-container">
+                                        <label
+                                            class="flex  p-3 border border-gray-200 rounded-lg mb-2 cursor-pointer hover:border-purple-500">
+                                            <input type="radio" name="pickup_delivery_address_id"
+                                                value="{{ $address->id }}" required
+                                                class="mt-1 text-purple-600 focus:ring-purple-500"
+                                                {{ $address->is_default ? 'checked' : '' }}>
+                                            <div class="ml-3">
+                                                <span class="block font-medium text-gray-800">
+                                                    {{ $address->address_line1 }}
+                                                    @if ($address->address_line2)
+                                                        , {{ $address->address_line2 }}
+                                                    @endif
                                                 </span>
-                                            @endif
-                                        </div>
-                                    </label>
+                                                <span class="block text-sm text-gray-500">
+                                                    {{ $address->city }}, {{ $address->province }} -
+                                                    {{ $address->postal_code }}
+                                                </span>
+                                                @if ($address->is_default)
+                                                    <span
+                                                        class="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">
+                                                        Alamat Utama
+                                                    </span>
+                                                @endif
+
+                                            </div>
+                                            <a href="#" data-address-id="{{ $address->id }}"
+                                                class="delete-address-btn ml-auto text-sm font-medium text-red-600 hover:text-red-500">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </label>
+                                    </div>
                                 @empty
                                     <div class="text-sm text-gray-500 mb-2">Anda belum memiliki alamat</div>
                                 @endforelse
@@ -204,4 +212,39 @@
         @include('partials.customer.form-address')
     </section>
     <script src="{{ asset('js/order/createOrder.js') }}"></script>
+    <script>
+        document.querySelectorAll('.delete-address-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                if (confirm('Apakah Anda yakin ingin menghapus alamat ini?')) {
+                    const addressId = this.dataset.addressId;
+                    const url = `/address/${addressId}`; // Pastikan URL sesuai dengan route Anda
+
+                    fetch(url, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert(data.message);
+                                // Hapus elemen alamat dari DOM
+                                this.closest('.alamat-container').remove();
+                            } else {
+                                alert('Gagal menghapus alamat: ' + (data.message ||
+                                    'Terjadi kesalahan.'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Terjadi kesalahan saat menghapus alamat.');
+                        });
+                }
+            });
+        });
+    </script>
 @endsection

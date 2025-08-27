@@ -23,7 +23,7 @@ class CustomerOrderController extends Controller
         $cartItems = Auth::user()->cart->items()->with('product')->get();
         $deliveryMethods = DeliveryMethod::where('is_active', true)->get();
         $paymentMethods = PaymentMethod::where('is_active', true)->get();
-        $userAddresses = Auth::user()->addresses;
+        $userAddresses = Auth::user()->addresses->where('is_active', true);
 
         $min_preparation_days = (int) SystemSetting::where('setting_key', 'min_preparation_days')->value('setting_value');
 
@@ -39,8 +39,6 @@ class CustomerOrderController extends Controller
             'min_preparation_days' => $min_preparation_days
         ]);
     }
-
-    // ... (lanjutan dari kode sebelumnya)
 
     public function store(Request $request)
     {

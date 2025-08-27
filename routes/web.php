@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Delivery\DeliveryMethodController;
 use App\Http\Controllers\Admin\Order\OrderController;
 use App\Http\Controllers\Admin\Order\OrderStatusController;
@@ -16,9 +17,23 @@ use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/about', [HomeController::class, 'about'])->name('about');
+Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+
+// ---- Authentication ---- //
+Route::get('/login', [AuthController::class, 'login'])->name('login');
+Route::get('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/register-process', [AuthController::class, 'registerProcess'])->name('register-process');
+Route::post('/login-action', [AuthController::class, 'loginAction'])->name('login-action');
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// ---- End Authentication ---- //
+
+
 // ---- Admin ---- //
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
     Route::prefix('admin')->group(function () {
         // ---- Kategori Produk ---- //
         Route::prefix('category')->group(function () {
@@ -104,18 +119,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 });
 // ---- End Admin ---- //
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
-
-// ---- Authentication ---- //
-Route::get('/login', [AuthController::class, 'login'])->name('login');
-Route::get('/register', [AuthController::class, 'register'])->name('register');
-Route::post('/register-process', [AuthController::class, 'registerProcess'])->name('register-process');
-Route::post('/login-action', [AuthController::class, 'loginAction'])->name('login-action');
-
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-// ---- End Authentication ---- //
-
-
 /**
  * ---- Customer ---- //
  */
@@ -125,6 +128,7 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     // Profile
     Route::controller(ProfileController::class)->group(function () {
         Route::post('/store/address', 'storeAddress')->name('store.address');
+        Route::delete('/address/{address}', [ProfileController::class, 'destroyAddress'])->name('destroy.address');
     });
 
     // // ---- Cart ---- //

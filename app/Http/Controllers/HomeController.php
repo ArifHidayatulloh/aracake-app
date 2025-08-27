@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -24,7 +25,12 @@ class HomeController extends Controller
         return view('home', compact('categories', 'featuredProducts'));
     }
 
-    public function dashboard(){
-        return view('admin.dashboard');
+    public function about(){
+        return view('about');
+    }
+
+    public function contact(){
+        $setting = SystemSetting::where('is_active', true)->get()->keyBy('setting_key');
+        return view('contact', compact('setting'));
     }
 }

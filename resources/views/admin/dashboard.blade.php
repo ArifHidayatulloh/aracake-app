@@ -1,4 +1,20 @@
 @extends('layouts.app')
+@php
+    function hexToRgba($hex, $alpha = 0.15)
+    {
+        $hex = str_replace('#', '', $hex);
+        if (strlen($hex) == 3) {
+            $r = hexdec(str_repeat(substr($hex, 0, 1), 2));
+            $g = hexdec(str_repeat(substr($hex, 1, 1), 2));
+            $b = hexdec(str_repeat(substr($hex, 2, 1), 2));
+        } else {
+            $r = hexdec(substr($hex, 0, 2));
+            $g = hexdec(substr($hex, 2, 2));
+            $b = hexdec(substr($hex, 4, 2));
+        }
+        return "rgba($r, $g, $b, $alpha)";
+    }
+@endphp
 
 @section('content')
     <div class="space-y-6">
@@ -12,8 +28,14 @@
                 class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white flex items-center justify-between transform hover:scale-105 transition-transform duration-200 ease-in-out">
                 <div>
                     <p class="text-sm uppercase font-semibold text-purple-200">Total Pesanan</p>
-                    <p class="text-4xl font-bold mt-1">1,234</p>
-                    <p class="text-sm text-purple-200 mt-1">+12% dari bulan lalu</p>
+                    <p class="text-4xl font-bold mt-1">{{ $totalOrderThisMonth }}</p>
+                    <p class="text-sm text-purple-200 mt-1">
+                        @if ($orderPercentageChange > 0)
+                            <span class="text-green-300">+{{ number_format($orderPercentageChange, 1) }}%</span> dari bulan lalu
+                        @else
+                            <span class="text-red-300">{{ number_format($orderPercentageChange, 1) }}%</span> dari bulan lalu
+                        @endif
+                    </p>
                 </div>
                 <svg class="w-14 h-14 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -26,7 +48,7 @@
                 class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-lg p-6 text-white flex items-center justify-between transform hover:scale-105 transition-transform duration-200 ease-in-out">
                 <div>
                     <p class="text-sm uppercase font-semibold text-indigo-200">Total Produk</p>
-                    <p class="text-4xl font-bold mt-1">87</p>
+                    <p class="text-4xl font-bold mt-1">{{ $totalProduct }}</p>
                     <p class="text-sm text-indigo-200 mt-1">3 produk baru minggu ini</p>
                 </div>
                 <svg class="w-14 h-14 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +62,7 @@
                 class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg shadow-lg p-6 text-white flex items-center justify-between transform hover:scale-105 transition-transform duration-200 ease-in-out">
                 <div>
                     <p class="text-sm uppercase font-semibold text-teal-200">Total Penjualan</p>
-                    <p class="text-4xl font-bold mt-1">Rp 125.000.000</p>
+                    <p class="text-4xl font-bold mt-1">Rp {{ number_format($totalRevenueThisMonth, 0, ',', '.') }}</p>
                     <p class="text-sm text-teal-200 mt-1">Target bulanan tercapai!</p>
                 </div>
                 <svg class="w-14 h-14 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,7 +81,7 @@
                         <tr>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ID Pesanan
+                                No Transaksi
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -67,7 +89,7 @@
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Produk
+                                Tanggal Pesan
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -79,79 +101,112 @@
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Tanggal
+                                Tanggal Ambil/Kirim
                             </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#AC001</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Budi Santoso</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Red Velvet Cake</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rp 250.000</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Selesai
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-07-20</td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#AC002</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Siti Aminah</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Chocolate Fudge</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rp 180.000</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                    Pending
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-07-21</td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#AC003</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Joko Susilo</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Vanilla Bean Cake</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rp 200.000</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Selesai
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-07-22</td>
-                        </tr>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#AC004</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Dewi Lestari</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Strawberry Shortcake</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rp 220.000</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                    Dibatalkan
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-07-22</td>
-                        </tr>
+                        @foreach ($newOrder as $order)
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    #{{ $order->no_transaction }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $order->user->full_name }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $order->order_date->format('d M Y') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    Rp {{ number_format($order->total_amount, 0, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span
+                                        style="background-color: {{ hexToRgba($order->status->status_color) }}; color: {{ $order->status->status_color }};"
+                                        class="text-sm font-medium px-3 py-1 rounded-full mt-2 sm:mt-0">
+                                        {{ $order->status->status_name }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $order->pickup_delivery_date->format('d M Y') }}
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
             <div class="mt-4 text-right">
-                <a href="#" class="text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors">Lihat
+                <a href="{{ route('admin.order.index') }}" class="text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors">Lihat
                     Semua Pesanan &rarr;</a>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm p-6 border border-purple-100">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Grafik Penjualan Bulanan</h3>
-            <div
-                class="h-64 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 border border-dashed border-gray-200">
-                <p>Area ini bisa menampilkan grafik penjualan Anda (misalnya, menggunakan Chart.js atau library lainnya).
-                </p>
+            <div class="h-64">
+                <canvas id="monthlySalesChart"></canvas>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('monthlySalesChart');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: @json($labels),
+                    datasets: [{
+                        label: 'Total Penjualan (Rp)',
+                        data: @json($data),
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false,
+                                color: 'rgba(200, 200, 200, 0.2)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Rp ' + value.toLocaleString('id-ID');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Rp ' + context.raw.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+@endsection
+
+@section('scripts')
+
+
 @endsection

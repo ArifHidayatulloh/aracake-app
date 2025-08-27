@@ -59,14 +59,14 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#"
+                        <a href="{{ route('about') }}"
                             class="text-gray-400 hover:text-purple-400 transition-colors duration-300 flex items-center">
                             <i class="fas fa-chevron-right text-xs mr-2 text-purple-500"></i>
                             Tentang Kami
                         </a>
-                    </li>                                       
+                    </li>
                     <li>
-                        <a href="#"
+                        <a href="{{ route('contact') }}"
                             class="text-gray-400 hover:text-purple-400 transition-colors duration-300 flex items-center">
                             <i class="fas fa-chevron-right text-xs mr-2 text-purple-500"></i>
                             Kontak
@@ -90,7 +90,7 @@
                                 {{ $category->name }}
                             </a>
                         </li>
-                    @endforeach                    
+                    @endforeach
                 </ul>
             </div>
 
