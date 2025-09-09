@@ -288,11 +288,12 @@
         </div>
     </div>
 
+
     {{-- Modal Bukti Pembayaran --}}
-    <div id="payment-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="flex justify-between items-center pb-3">
-                <h3 class="text-lg font-semibold text-gray-900">Bukti Pembayaran</h3>
+    <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 max-w-2xl w-full max-h-screen overflow-y-auto mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Bukti Pembayaran</h3>
                 <button id="close-modal" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg">
@@ -301,16 +302,19 @@
                     </svg>
                 </button>
             </div>
-            <div class="mt-2">
-                @if ($order->payment)
-                    <img src="{{ Storage::url($order->payment->proof_of_payment_url) ?? '' }}" alt="Bukti Pembayaran"
-                        class="w-full h-auto rounded-md shadow-sm">
-                @else
-                    <p class="text-gray-500 text-center">Tidak ada bukti pembayaran yang diunggah.</p>
-                @endif
+
+            <div class="text-center">
+                <img src="{{ Storage::url($order->payment->proof_of_payment_url) ?? '' }}" alt="Bukti Pembayaran"
+                    class="max-w-full max-h-[70vh] h-auto rounded-lg mx-auto object-contain">
+                <p class="text-sm text-gray-600 mt-2">
+                    bukti transfer #{{ $order->no_transaction }}
+                </p>
             </div>
         </div>
     </div>
+
+
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

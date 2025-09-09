@@ -141,7 +141,7 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     // // ---- End Cart ---- //
     // // ---- Order ---- //
     Route::controller(CustomerOrderController::class)->group(function () {
-        Route::get('/order/create', 'create')->name('customer.order.create');
+        Route::post('/order/create', 'create')->name('customer.order.create');
         Route::post('/order/store', 'store')->name('customer.order.store');
         Route::get('/order/{order:no_transaction}/payment', 'payment')->name('customer.order.payment');
         Route::post('/order/{order:no_transaction}/upload-proof', 'uploadPaymentProof')->name('customer.payment.upload');

@@ -15,16 +15,24 @@ document.addEventListener('DOMContentLoaded', function () {
             const deliveryCostEl = document.getElementById('delivery-cost');
             const orderTotalEl = document.getElementById('order-total');
 
-            // Ambil biaya pengiriman dari data atribut
+            const isPickup = this.dataset.is_pickup == 1; // Ubah ke boolean
             const cost = parseInt(this.dataset.cost) || 0;
             deliveryCost = cost;
 
-            // Update tampilan biaya pengiriman dan total
-            deliveryCostEl.textContent = cost === 0 ? 'Gratis' : formatRupiah(cost);
+            // Update tampilan biaya pengiriman berdasarkan is_pickup
+            if (isPickup) {
+                deliveryCostEl.textContent = 'Gratis';
+            } else {
+                deliveryCostEl.textContent = 'Sesuai aplikasi';
+            }
+
+            // Update total tetap berdasarkan subtotal + biaya pengiriman
             const total = subtotal + deliveryCost;
             orderTotalEl.textContent = formatRupiah(total);
         });
     });
+
+
 
     // Inisialisasi nilai awal
     const initialDeliveryMethod = document.querySelector('input[name="delivery_method_id"]:checked');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer\Order;
 
 use App\Http\Controllers\Controller;
+use App\Models\CartItem;
 use App\Models\DeliveryMethod;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -18,18 +19,42 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerOrderController extends Controller
 {
-    public function create()
+    // ==== NEW CREATE === //
+    public function create(Request $request)
     {
-        $cartItems = Auth::user()->cart->items()->with('product')->get();
+        // Validasi untuk memastikan ada item yang dipilih dan item tersebut valid
+        $validated = $request->validate([
+            'selected_items' => 'required|array|min:1',
+            'selected_items.*' => 'exists:cart_items,id',
+        ]);
+
+        $selectedItemIds = $validated['selected_items'];
+
+        // Ambil item dari keranjang HANYA yang ID-nya ada di dalam array `selectedItemIds`
+        // dan pastikan item tersebut milik user yang sedang login untuk keamanan
+        $cartItems = Auth::user()->cart->items()
+            ->whereIn('id', $selectedItemIds)
+            ->with('product')
+            ->get();
+
+
+        // Jika karena suatu alasan (misal, manipulasi dari user) tidak ada item yang ditemukan, kembalikan ke keranjang
+        if ($cartItems->isEmpty()) {
+            return redirect()->route('cart.index')->with('error', 'Tidak ada item yang dipilih untuk checkout.');
+        }
+
+        // Logika lainnya tetap sama
         $deliveryMethods = DeliveryMethod::where('is_active', true)->get();
         $paymentMethods = PaymentMethod::where('is_active', true)->get();
         $userAddresses = Auth::user()->addresses->where('is_active', true);
 
         $min_preparation_days = (int) SystemSetting::where('setting_key', 'min_preparation_days')->value('setting_value');
 
+        // Perhitungan subtotal sekarang otomatis berdasarkan $cartItems yang sudah difilter
         $subtotal = $cartItems->sum(function ($item) {
             return $item->product->price * $item->quantity;
         });
+
         return view('customer.order.create', [
             'cartItems' => $cartItems,
             'deliveryMethods' => $deliveryMethods,
@@ -40,48 +65,60 @@ class CustomerOrderController extends Controller
         ]);
     }
 
+    // === New Store === //
     public function store(Request $request)
     {
         $min_preparation_days = (int) SystemSetting::where('setting_key', 'min_preparation_days')->value('setting_value');
+
+        // PERBAIKAN 1: Tambahkan validasi untuk 'selected_items'
         $validatedData = $request->validate([
+            'selected_items' => 'required|array|min:1',
+            'selected_items.*' => 'exists:cart_items,id',
             'pickup_delivery_address_id' => 'required|exists:user_addresses,id',
-            'pickup_delivery_date' => 'required|date|after_or_equal:' . now()->addDays($min_preparation_days)->format('Y-m-d'), // Tambahkan validasi tanggal minimum
+            'pickup_delivery_date' => 'required|date|after_or_equal:' . now()->addDays($min_preparation_days)->format('Y-m-d'),
             'delivery_method_id' => 'required|exists:delivery_methods,id',
             'payment_method_id' => 'required|exists:payment_methods,id',
             'notes' => 'nullable|string|max:1000',
         ], [
             'pickup_delivery_date.after_or_equal' => 'Tanggal pengiriman/pengambilan harus setelah ' . now()->addDays($min_preparation_days)->format('Y-m-d'),
             'notes.max' => 'Catatan tidak boleh lebih dari 1000 karakter',
+            'selected_items.required' => 'Tidak ada item yang dipilih untuk diproses.',
         ]);
 
         $user = Auth::user();
-        // Gunakan relasi dengan benar untuk mendapatkan item keranjang
-        $cartItems = $user->cart->items()->with('product')->get();
+        $selectedItemIds = $validatedData['selected_items'];
+
+        // PERBAIKAN 2: Ambil item keranjang berdasarkan ID yang dipilih
+        $cartId = $user->cart->id;
+        $cartItems = CartItem::where('cart_id', $cartId)
+            ->whereIn('id', $selectedItemIds)
+            ->with('product')
+            ->get();
+
         $deliveryMethod = DeliveryMethod::find($validatedData['delivery_method_id']);
 
         if ($cartItems->isEmpty()) {
-            return redirect()->route('cart')->with('error', 'Keranjang Anda kosong, tidak dapat membuat pesanan.');
+            return redirect()->route('cart')->with('error', 'Item yang Anda pilih tidak valid atau keranjang kosong.');
         }
 
-        // Hitung subtotal dari item keranjang yang diambil dari database
+        // Perhitungan subtotal sudah otomatis benar karena $cartItems sudah terfilter
         $subtotal = $cartItems->sum(function ($item) {
             return $item->product->price * $item->quantity;
         });
         $deliveryCost = $deliveryMethod->base_cost;
         $totalAmount = $subtotal + $deliveryCost;
 
-        // Ambil status "Pending" secara dinamis, asumsi kolom 'name' ada di tabel order_statuses
         $status = OrderStatus::where('order', '1')->first();
-        // Jika tidak ada, fallback ke ID 1 atau lemparkan exception
         if (!$status) {
-            throw new \Exception('Order status "Pending" not found.');
+            // Fallback atau error jika status 'Pending' tidak ditemukan
+            return redirect()->back()->with('error', 'Status pesanan awal tidak ditemukan. Hubungi administrator.');
         }
 
         DB::beginTransaction();
         try {
             $order = Order::create([
                 'user_id' => $user->id,
-                'no_transaction' => 'ARA-' . Str::upper(Str::random(3)) . '-' . now()->format('Ymd'),
+                'no_transaction' => 'ARA-' . Str::upper(Str::random(3)) . '-' . now()->format('YmdHis'),
                 'order_status_id' => $status->id,
                 'delivery_method_id' => $validatedData['delivery_method_id'],
                 'pickup_delivery_address_id' => $validatedData['pickup_delivery_address_id'],
@@ -97,24 +134,21 @@ class CustomerOrderController extends Controller
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
                     'quantity' => $item->quantity,
-                    'unit_price' => $item->product->price, // Ambil harga dari produk, bukan dari item keranjang
+                    'unit_price' => $item->product->price,
                     'subtotal' => $item->product->price * $item->quantity,
                 ]);
             }
 
-            // Hapus item keranjang setelah pesanan dibuat
-            $user->cart->items()->delete();
+            // PERBAIKAN 3: Hapus HANYA item yang sudah dipesan dari keranjang
+            CartItem::where('cart_id', $cartId)->whereIn('id', $selectedItemIds)->delete();
+
             DB::commit();
 
-            // Tambahkan log untuk pesanan yang berhasil dibuat
-            // Asumsi OrderLog::log adalah method statis
             OrderLog::log([
                 'order_id' => $order->id,
                 'actor_user_id' => Auth::id(),
                 'event_type' => 'ORDER_CREATED',
                 'message' => 'Pesanan baru dibuat oleh ' . Auth::user()->full_name . '.',
-                'old_value' => null,
-                'new_value' => null,
             ]);
 
             return redirect()->route('customer.order.payment', ['order' => $order->no_transaction])->with('success', 'Pesanan Anda berhasil dibuat.');
