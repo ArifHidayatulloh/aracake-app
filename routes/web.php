@@ -35,6 +35,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
     Route::prefix('admin')->group(function () {
+        // ---- Profile Admin ---- //
+        Route::get('/profile', [DashboardController::class, 'profile'])->name('admin.profile');
+        Route::put('/profile-update', [DashboardController::class, 'profileUpdate'])->name('admin.profile.update');
+        Route::put('/change-password', [DashboardController::class, 'updatePassword'])->name('admin.change-password');
+        Route::delete('/profile', [DashboardController::class, 'accountDestroy'])->name('admin.profile.delete');
+        // ---- End Profile Admin ---- //
+        
         // ---- Kategori Produk ---- //
         Route::prefix('category')->group(function () {
             Route::get('/index', [CategoryController::class, 'index'])->name('admin.category.index');
@@ -141,7 +148,7 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     // // ---- End Cart ---- //
     // // ---- Order ---- //
     Route::controller(CustomerOrderController::class)->group(function () {
-        Route::post('/order/create', 'create')->name('customer.order.create');
+        Route::match(['get', 'post'], '/order/create', 'create')->name('customer.order.create');
         Route::post('/order/store', 'store')->name('customer.order.store');
         Route::get('/order/{order:no_transaction}/payment', 'payment')->name('customer.order.payment');
         Route::post('/order/{order:no_transaction}/upload-proof', 'uploadPaymentProof')->name('customer.payment.upload');

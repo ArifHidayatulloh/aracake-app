@@ -44,20 +44,20 @@ class SystemSettingSeeder extends Seeder
                 'description' => 'Radius maksimum pengiriman lokal dalam kilometer.',
                 'type' => 'decimal',
             ],
-            [
-                'setting_key' => 'working_hours',
-                'setting_value' => json_encode([
-                    'Monday' => '09:00-17:00',
-                    'Tuesday' => '09:00-17:00',
-                    'Wednesday' => '09:00-17:00',
-                    'Thursday' => '09:00-17:00',
-                    'Friday' => '09:00-17:00',
-                    'Saturday' => '10:00-15:00',
-                    'Sunday' => 'Closed',
-                ]),
-                'description' => 'Jam operasional toko.',
-                'type' => 'json',
-            ],
+            // [
+            //     'setting_key' => 'working_hours',
+            //     'setting_value' => json_encode([
+            //         'Monday' => '09:00-17:00',
+            //         'Tuesday' => '09:00-17:00',
+            //         'Wednesday' => '09:00-17:00',
+            //         'Thursday' => '09:00-17:00',
+            //         'Friday' => '09:00-17:00',
+            //         'Saturday' => '10:00-15:00',
+            //         'Sunday' => 'Closed',
+            //     ]),
+            //     'description' => 'Jam operasional toko.',
+            //     'type' => 'json',
+            // ],
         ];
 
         foreach ($settings as $setting) {

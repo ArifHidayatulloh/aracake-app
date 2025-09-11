@@ -36,10 +36,10 @@
             <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none group">
                 <div
                     class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white shadow-md">
-                    A
+                    {{ strtoupper(substr(Auth::user()->full_name ?? 'A', 0, 1)) }}
                 </div>
                 <span class="hidden md:inline text-gray-700 group-hover:text-purple-600 transition-colors">
-                    Administrator
+                    {{ Auth::user()->full_name ?? 'Admin' }}
                 </span>
                 <!-- Chevron Down Icon -->
                 <svg class="w-4 h-4 text-gray-500 group-hover:text-purple-600 transition-colors" fill="currentColor"
@@ -56,7 +56,7 @@
                 x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-75"
                 x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
                 <div class="py-1">
-                    <a href="#"
+                    <a href="{{ route('admin.profile') }}"
                         class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center">
                         <!-- User Icon -->
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

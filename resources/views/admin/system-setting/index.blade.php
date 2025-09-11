@@ -11,9 +11,9 @@
 
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-gray-800">Pengaturan Sistem</h3>
-            <x-button.link-primary href="{{ route('admin.system-setting.create') }}">
+            {{-- <x-button.link-primary href="{{ route('admin.system-setting.create') }}">
                 <x-heroicon-o-plus class="w-5 h-5 mr-2" /> Tambah Pengaturan
-            </x-button.link-primary>
+            </x-button.link-primary> --}}
         </div>
 
         {{-- Table system-setting --}}

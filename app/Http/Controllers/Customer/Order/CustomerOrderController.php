@@ -22,35 +22,44 @@ class CustomerOrderController extends Controller
     // ==== NEW CREATE === //
     public function create(Request $request)
     {
-        // Validasi untuk memastikan ada item yang dipilih dan item tersebut valid
-        $validated = $request->validate([
-            'selected_items' => 'required|array|min:1',
-            'selected_items.*' => 'exists:cart_items,id',
-        ]);
+        // Cek jika request adalah POST dari halaman keranjang
+        if ($request->isMethod('post')) {
+            $validated = $request->validate([
+                'selected_items' => 'required|array|min:1',
+                'selected_items.*' => 'exists:cart_items,id',
+            ]);
+            $selectedItemIds = $validated['selected_items'];
 
-        $selectedItemIds = $validated['selected_items'];
+            // Simpan ID item yang dipilih ke dalam session untuk "diingat"
+            session(['selected_cart_items_for_checkout' => $selectedItemIds]);
+        } else { // Jika request adalah GET (misal, redirect back dari validasi gagal)
+            // Ambil ID dari session yang sudah disimpan
+            $selectedItemIds = session('selected_cart_items_for_checkout');
+        }
 
-        // Ambil item dari keranjang HANYA yang ID-nya ada di dalam array `selectedItemIds`
-        // dan pastikan item tersebut milik user yang sedang login untuk keamanan
-        $cartItems = Auth::user()->cart->items()
+        // Jika tidak ada ID item sama sekali, pengguna tidak seharusnya ada di sini
+        if (empty($selectedItemIds)) {
+            return redirect()->route('cart')->with('error', 'Silakan pilih item dari keranjang terlebih dahulu.');
+        }
+
+        // Logika untuk mengambil data item tetap sama, menggunakan $selectedItemIds
+        $cartId = Auth::user()->cart->id;
+        $cartItems = CartItem::where('cart_id', $cartId)
             ->whereIn('id', $selectedItemIds)
             ->with('product')
             ->get();
 
-
-        // Jika karena suatu alasan (misal, manipulasi dari user) tidak ada item yang ditemukan, kembalikan ke keranjang
         if ($cartItems->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Tidak ada item yang dipilih untuk checkout.');
+            // Hapus session jika item tidak valid lagi
+            session()->forget('selected_cart_items_for_checkout');
+            return redirect()->route('cart')->with('error', 'Item yang dipilih tidak ditemukan atau tidak valid.');
         }
 
-        // Logika lainnya tetap sama
+        // Sisa dari method Anda tidak perlu diubah
         $deliveryMethods = DeliveryMethod::where('is_active', true)->get();
         $paymentMethods = PaymentMethod::where('is_active', true)->get();
         $userAddresses = Auth::user()->addresses->where('is_active', true);
-
         $min_preparation_days = (int) SystemSetting::where('setting_key', 'min_preparation_days')->value('setting_value');
-
-        // Perhitungan subtotal sekarang otomatis berdasarkan $cartItems yang sudah difilter
         $subtotal = $cartItems->sum(function ($item) {
             return $item->product->price * $item->quantity;
         });
@@ -61,10 +70,9 @@ class CustomerOrderController extends Controller
             'paymentMethods' => $paymentMethods,
             'userAddresses' => $userAddresses,
             'subtotal' => $subtotal,
-            'min_preparation_days' => $min_preparation_days
+            'min_preparation_days' => $min_preparation_days,
         ]);
     }
-
     // === New Store === //
     public function store(Request $request)
     {

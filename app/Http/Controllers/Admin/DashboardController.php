@@ -7,15 +7,13 @@ use App\Models\Order;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class DashboardController extends Controller
 {
-    // private function statusOrder(){
-    //     $status = [
-    //         ''
-    //     ]
-    // }
     public function dashboard()
     {
         // Mendapatkan bulan ini dan bulan sebelumnya
@@ -84,5 +82,57 @@ class DashboardController extends Controller
             'labels',
             'data'
         ));
+    }
+
+    public function profile()
+    {
+        return view('admin.profile.profile');
+    }
+
+     public function profileUpdate(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:100',
+            'username' => ['nullable', 'string', 'max:50', Rule::unique('users')->ignore($user->id)],
+            'email' => ['required', 'email', 'max:100', Rule::unique('users')->ignore($user->id)],
+            'phone_number' => 'nullable|string|max:20',
+        ]);
+
+        $user->update($validated);
+
+        return back()->with('success', 'Profil berhasil diperbarui');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Password saat ini salah']);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return back()->with('success', 'Password berhasil diubah');
+    }
+
+    public function accountDestroy(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|current_password',
+        ]);
+
+        Auth::user()->delete();
+
+        return redirect('/')->with('success', 'Akun berhasil dihapus');
     }
 }

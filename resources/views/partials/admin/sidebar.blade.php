@@ -141,13 +141,15 @@
         <div class="flex items-center space-x-3">
             <div
                 class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white shadow-md">
-                A
+                {{ strtoupper(substr(Auth::user()->full_name ?? 'A', 0, 1)) }}
             </div>
             <div>
                 <p class="text-sm font-medium text-white">
-                    Administrator
+                    {{ Auth::user()->full_name ?? 'Admin' }}
                 </p>
-                <p class="text-xs text-purple-300">Admin</p>
+                <p class="text-xs text-purple-300">
+                    {{ Auth::user()->role  }}
+                </p>
             </div>
         </div>
     </div>

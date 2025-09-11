@@ -49,8 +49,7 @@
 
                                             <img src="{{ $item->product->image_url }}" alt="{{ $item->product->name }}" class="object-cover w-20 h-20 rounded-lg">
                                             <div class="ml-4">
-                                                <h3 class="font-medium text-gray-800">{{ $item->product->name }}</h3>
-                                                <p class="text-sm text-gray-500">Ukuran: {{ $item->size }}</p>
+                                                <h3 class="font-medium text-gray-800">{{ $item->product->name }}</h3>                                                
                                             </div>
                                         </div>
                                         <div class="mb-4 text-center md:w-2/12 md:mb-0">
