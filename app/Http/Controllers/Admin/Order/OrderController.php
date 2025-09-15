@@ -93,6 +93,13 @@ class OrderController extends Controller
                 $order->is_cancelled = false;
             }
 
+            // Set is_finish to true if the new status is 6 (Completed)
+            if ($validatedData['order_status_id'] == 6) {
+                $order->is_finish = true;
+            } else {
+                $order->is_finish = false;
+            }
+
             // Update alasan pembatalan jika ada
             if ($request->filled('message')) {
                 $order->cancellation_reason = $validatedData['message'];

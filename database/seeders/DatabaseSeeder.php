@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Order;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -16,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             UserAddress::class,
+            OrderStatusSeeder::class,
             CategorySeeder::class,
             PaymentMethodSeeder::class,
             DeliveryMethodSeeder::class,

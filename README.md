@@ -1,139 +1,95 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="[URL_LOGO_ATAU_BANNER_ANDA_JIKA_ADA]" alt="Aracake App Banner" width="400"/>
 </p>
 
-Aracake App
-Aplikasi web untuk manajemen pesanan kue dan roti, dirancang untuk memudahkan pemilik toko kue dalam mengelola produk, pesanan, dan pelanggan secara efisien. Proyek ini bertujuan untuk menyediakan solusi digital yang intuitif dan responsif untuk bisnis kue kecil hingga menengah.
+<h1 align="center">Aracake App - E-Commerce Toko Kue</h1>
 
-Daftar Isi:
+<p align="center">
+  Aplikasi web e-commerce yang dibangun dengan Laravel untuk manajemen toko kue online.
+</p>
 
-Fitur Utama
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-8.1%2B-blue?style=flat&logo=php" alt="PHP Version">
+  <img src="https://img.shields.io/badge/Laravel-10.x-orange?style=flat&logo=laravel" alt="Laravel Version">
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+</p>
 
-Teknologi yang Digunakan
+---
 
-Instalasi
+## 📜 Tentang Proyek
 
-Penggunaan
+Aracake App adalah aplikasi web e-commerce yang dirancang untuk toko kue "Aracake". Aplikasi ini memungkinkan pelanggan untuk melihat, memesan, dan melacak pembelian kue secara online. Di sisi lain, admin dapat dengan mudah mengelola produk, stok, pesanan yang masuk, dan melihat laporan penjualan. Proyek ini dibuat sebagai studi kasus implementasi framework Laravel dalam membangun aplikasi e-commerce yang fungsional.
 
-Kontribusi
+## ✨ Fitur Utama
 
-Lisensi
+Berikut adalah beberapa fitur utama yang ada di dalam aplikasi ini:
 
-Kontak
+* **Untuk Pelanggan (Customer):**
+    * 🛒 Katalog produk dengan pencarian dan filter.
+    * 📝 Proses pemesanan (checkout) yang mudah.
+    * 🔐 Autentikasi dan manajemen profil pengguna.
+    * 📜 Riwayat dan status pesanan.
+* **Untuk Administrator (Admin):**
+    * 🖥️ Dashboard dengan ringkasan penjualan dan statistik.
+    * 🍰 Manajemen Produk (Tambah, Edit, Hapus Kue).
+    * 📦 Manajemen Pesanan (Melihat pesanan baru, memproses, dan menyelesaikan pesanan).
+    * 👥 Manajemen Pengguna.
 
-Fitur Utama
-Aracake App hadir dengan serangkaian fitur yang dirancang untuk mengoptimalkan operasional bisnis kue Anda:
+## 📸 Tampilan Aplikasi (Screenshot)
 
-Manajemen Produk: Tambah, edit, dan hapus daftar kue dan roti dengan detail seperti harga, deskripsi, dan gambar.
+**SANGAT PENTING:** *Gantilah bagian di bawah ini dengan screenshot nyata dari aplikasi Anda. Ini akan membuat README Anda 100x lebih menarik!*
 
-Manajemen Pesanan: Lacak status pesanan dari awal hingga selesai, termasuk detail pelanggan dan item pesanan.
+| Halaman Utama | Halaman Produk |
+| :---: | :---: |
+| ![Homepage]([URL_SCREENSHOT_HOMEPAGE]) | ![Product Page]([URL_SCREENSHOT_PRODUK]) |
 
-Manajemen Pelanggan: Simpan data pelanggan untuk memudahkan komunikasi dan melihat riwayat pesanan.
+| Dashboard Admin | Manajemen Pesanan |
+| :---: | :---: |
+| ![Admin Dashboard]([URL_SCREENSHOT_ADMIN]) | ![Order Management]([URL_SCREENSHOT_PESANAN]) |
 
-Dashboard Interaktif: Tampilan ringkasan penjualan dan pesanan yang mudah dipahami secara visual.
 
-Desain Responsif: Antarmuka yang dioptimalkan untuk berbagai perangkat (desktop, tablet, mobile).
+## 🛠️ Teknologi yang Digunakan
 
-Teknologi yang Digunakan
-Proyek ini dibangun menggunakan tumpukan teknologi modern yang andal dan dapat diskalakan:
+* **Backend:** PHP, Laravel
+* **Frontend:** Blade, Bootstrap 5, JavaScript
+* **Database:** MySQL
+* **Server:** Apache/Nginx
+* **Tools:** Composer, NPM
 
-Backend:
+## 🚀 Panduan Instalasi & Setup
 
-PHP 8.x
+Berikut adalah langkah-langkah untuk menjalankan proyek ini secara lokal:
 
-Laravel Framework 10.x
+**1. Prasyarat (Prerequisites)**
+Pastikan Anda sudah menginstal:
+* PHP (versi 8.1 atau lebih baru)
+* Composer
+* Node.js & NPM
+* Database (misalnya MySQL)
 
-MySQL (Database)
-
-Frontend:
-
-HTML5
-
-CSS3 (dengan Tailwind CSS)
-
-JavaScript
-
-Deployment (Opsional):
-
-Docker
-
-Nginx
-
-Instalasi
-Ikuti langkah-langkah berikut untuk menginstal dan menjalankan proyek ini di lingkungan lokal Anda:
-
-Clone repositori:
-
-git clone https://github.com/nama-pengguna-anda/aracake-app.git
+**2. Clone Repository**
+```bash
+git clone [https://github.com/ArifHidayatulloh/aracake-app.git](https://github.com/ArifHidayatulloh/aracake-app.git)
 cd aracake-app
 
-Instal dependensi Composer:
-
+# Instal dependency PHP
 composer install
 
-Buat file .env dan atur kunci aplikasi:
+# Instal dependency JavaScript
+npm install
 
+# Salin file .env.example
 cp .env.example .env
+
+# Buat kunci aplikasi baru
 php artisan key:generate
 
-Konfigurasi database di file .env:
-Buka file .env dan sesuaikan pengaturan database Anda:
+# Jalankan migrasi untuk membuat tabel
+php artisan migrate
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=aracake_db # Ganti dengan nama database Anda
-DB_USERNAME=root     # Ganti dengan username database Anda
-DB_PASSWORD=         # Ganti dengan password database Anda
+# (Opsional) Jalankan seeder untuk mengisi data awal (jika ada)
+php artisan db:seed
 
-Jalankan migrasi database dan seed data (opsional):
-
-php artisan migrate --seed
-
-Jalankan server pengembangan Laravel:
+npm run dev
 
 php artisan serve
-
-Akses aplikasi:
-Buka browser Anda dan kunjungi http://127.0.0.1:8000 (atau port yang ditampilkan di terminal Anda).
-
-Penggunaan
-Setelah instalasi berhasil, Anda dapat:
-
-Login: Gunakan kredensial default (jika disediakan dalam seed) atau daftarkan akun baru melalui halaman registrasi.
-
-Tambahkan Produk: Navigasi ke bagian manajemen produk untuk menambahkan item kue/roti baru.
-
-Kelola Pesanan: Perbarui status pesanan saat diterima, diproses, atau selesai.
-
-Lihat Laporan: Periksa dashboard untuk melihat ringkasan penjualan dan metrik penting lainnya.
-
-Kontribusi
-Kami menyambut kontribusi dari siapa pun! Jika Anda ingin berkontribusi untuk membuat aplikasi ini lebih baik, silakan ikuti panduan di bawah ini:
-
-Fork repositori ini.
-
-Buat branch baru untuk fitur atau perbaikan Anda (git checkout -b feature/nama-fitur-baru).
-
-Lakukan perubahan Anda dan commit (git commit -m 'Tambahkan fitur baru').
-
-Push ke branch Anda (git push origin feature/nama-fitur-baru).
-
-Buat Pull Request (PR) ke branch main repositori ini.
-
-Lisensi
-Proyek ini dilisensikan di bawah Lisensi MIT. Lihat file LICENSE.md untuk detail lebih lanjut.
-
-Kontak
-Jika Anda memiliki pertanyaan, saran, atau ingin berkolaborasi, jangan ragu untuk menghubungi:
-
-Nama Anda: [Nama Lengkap Anda]
-
-Email: [email@example.com]
-
-GitHub: [https://github.com/nama-pengguna-anda]

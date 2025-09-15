@@ -50,7 +50,7 @@
                     Pesanan
                     @php
                         $order = App\Models\Order::all();
-                        $count = $order->where('is_finish', false)->where('is_cancelled')->count();
+                        $count = $order->where('is_finish', false)->where('is_cancelled',false)->count();
                     @endphp
                     <span class="ml-auto px-2 py-0.5 bg-purple-600/30 text-xs rounded-full">
                         {{ $count }}
