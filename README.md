@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/PHP-8.1%2B-blue?style=flat&logo=php" alt="PHP Version">
-  <img src="https://img.shields.io/badge/Laravel-10.x-orange?style=flat&logo=laravel" alt="Laravel Version">
+  <img src="https://img.shields.io/badge/PHP-8.2%2B-blue?style=flat&logo=php" alt="PHP Version">
+  <img src="https://img.shields.io/badge/Laravel-11.x-orange?style=flat&logo=laravel" alt="Laravel Version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
 </p>
 
@@ -35,25 +35,13 @@ Berikut adalah beberapa fitur utama yang ada di dalam aplikasi ini:
     * 📦 Manajemen Pesanan (Melihat pesanan baru, memproses, dan menyelesaikan pesanan).
     * 👥 Manajemen Pengguna.
 
-## 📸 Tampilan Aplikasi (Screenshot)
-
-**SANGAT PENTING:** *Gantilah bagian di bawah ini dengan screenshot nyata dari aplikasi Anda. Ini akan membuat README Anda 100x lebih menarik!*
-
-| Halaman Utama | Halaman Produk |
-| :---: | :---: |
-| ![Homepage]([URL_SCREENSHOT_HOMEPAGE]) | ![Product Page]([URL_SCREENSHOT_PRODUK]) |
-
-| Dashboard Admin | Manajemen Pesanan |
-| :---: | :---: |
-| ![Admin Dashboard]([URL_SCREENSHOT_ADMIN]) | ![Order Management]([URL_SCREENSHOT_PESANAN]) |
-
 
 ## 🛠️ Teknologi yang Digunakan
 
 * **Backend:** PHP, Laravel
-* **Frontend:** Blade, Bootstrap 5, JavaScript
+* **Frontend:** Blade, Tailwind, JavaScript
 * **Database:** MySQL
-* **Server:** Apache/Nginx
+* **Server:** Apache
 * **Tools:** Composer, NPM
 
 ## 🚀 Panduan Instalasi & Setup
@@ -62,10 +50,10 @@ Berikut adalah langkah-langkah untuk menjalankan proyek ini secara lokal:
 
 **1. Prasyarat (Prerequisites)**
 Pastikan Anda sudah menginstal:
-* PHP (versi 8.1 atau lebih baru)
+* PHP (versi 8.2 atau lebih baru)
 * Composer
 * Node.js & NPM
-* Database (misalnya MySQL)
+* Database (MySQL)
 
 **2. Clone Repository**
 ```bash
@@ -92,4 +80,4 @@ php artisan db:seed
 
 npm run dev
 
-php artisan serve
+php artisan serve```
