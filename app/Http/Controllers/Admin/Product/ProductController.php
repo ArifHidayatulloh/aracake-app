@@ -58,63 +58,55 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $searchParam = $request->input('search');
-        $isActiveParam = $request->input('is_active');
-        $isAvailableParam = $request->input('is_available');
-        $isRecomendedParam = $request->input('is_recommended');
-        $isFeaturedParam = $request->input('is_featured');
-        $categoryParam = $request->input('category');
-        $priceSortParam = $request->input('price_sort');
-        $nameSortParam = $request->input('name_sort');
-        $skuSortParam = $request->input('sku_sort');
+        $categories = ProductCategory::where('is_active', true)->orderBy('name')->get();
 
-        $productQuery = Product::query()->with('category');
-        if ($searchParam) {
-            $productQuery->where(function ($query) use ($searchParam) {
-                $query->where('name', 'like', '%' . $searchParam . '%')
-                    ->orWhere('description', 'like', '%' . $searchParam . '%')
-                    ->orWhere('sku', 'like', '%' . $searchParam . '%');
-            });
-        }
-        if ($isActiveParam !== null) {
-            $productQuery->where('is_active', (bool) $isActiveParam);
-        }
-        if ($isAvailableParam !== null) {
-            $productQuery->where('is_available', (bool) $isAvailableParam);
-        }
-        if ($isRecomendedParam !== null) {
-            $productQuery->where('is_recommended', (bool) $isRecomendedParam);
-        }
-        if ($isFeaturedParam !== null) {
-            $productQuery->where('is_featured', (bool) $isFeaturedParam);
-        }
-        if ($categoryParam !== null) {
-            $productQuery->where('category_id', $categoryParam);
-        }
-        if ($priceSortParam) {
-            $productQuery->orderBy('price', $priceSortParam);
-        }
-        if ($nameSortParam) {
-            $productQuery->orderBy('name', $nameSortParam);
-        }
-        if ($skuSortParam) {
-            $productQuery->orderBy('sku', $skuSortParam);
-        } else {
-            $productQuery->latest();
-        }
+        // Menggunakan metode when() untuk query yang lebih bersih
+        $products = Product::with('category')
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $searchTerm = '%' . $request->search . '%';
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('name', 'like', $searchTerm)
+                      ->orWhere('sku', 'like', $searchTerm);
+                });
+            })
+            ->when($request->filled('category'), function ($query) use ($request) {
+                $query->where('category_id', $request->category);
+            })
+            ->when($request->filled('is_active'), function ($query) use ($request) {
+                $query->where('is_active', $request->is_active);
+            })
+            ->when($request->filled('is_available'), function ($query) use ($request) {
+                $query->where('is_available', $request->is_available);
+            })
+            ->when($request->filled('is_recommended'), function ($query) use ($request) {
+                $query->where('is_recommended', $request->is_recommended);
+            })
+            ->when($request->filled('sort_by'), function ($query) use ($request) {
+                // Whitelist untuk keamanan sorting
+                $sortables = ['name', 'price', 'sku', 'created_at'];
+                $direction = $request->input('direction', 'asc');
+                if (in_array($request->sort_by, $sortables)) {
+                    $query->orderBy($request->sort_by, $direction);
+                }
+            }, function ($query) {
+                // Default sort jika tidak ada parameter sorting
+                $query->latest();
+            })
+            ->paginate(10)
+            ->withQueryString(); // Otomatis membawa semua parameter filter saat paginasi
 
-        $products = $productQuery->paginate(10)->appends($request->query());
-        $categories = ProductCategory::all();
-        $headers = [
-            'Nama Produk',
-            'Kategori',
-            'Harga',
-            'SKU',
-            'Tersedia',
-            'Pre-order',
-            'Aksi'
-        ];
-        return view('admin.product.index', compact('products', 'categories', 'headers'));
+        return view('admin.product.index', compact('products', 'categories'));
+    }
+    
+    // [BARU] Method untuk toggle status
+    public function toggleStatus(Request $request, Product $product)
+    {
+        $request->validate(['field' => 'required|in:is_active,is_available,is_recommended,is_featured']);
+        
+        $field = $request->field;
+        $product->update([$field => !$product->$field]);
+        
+        return back()->with('success', 'Status produk berhasil diperbarui.');
     }
 
 

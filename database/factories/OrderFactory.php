@@ -39,7 +39,7 @@ class OrderFactory extends Factory
         return [
             'no_transaction' => 'ARA-' . Str::upper(Str::random(3)) . '-' . $orderDate->format('YmdHis'),
             'user_id' => $customer->id,
-            'order_status_id' => OrderStatus::inRandomOrder()->first()->id, // Status awal acak
+            'order_status_id' => 1, // Status awal acak
             'delivery_method_id' => $deliveryMethod->id,
             'pickup_delivery_address_id' => $customer->addresses()->inRandomOrder()->first()->id ?? null,
             'payment_method_id' => $paymentMethod->id,
@@ -107,7 +107,7 @@ class OrderFactory extends Factory
                 ]);
 
                 // Buat Log: "PAYMENT_PROOF_UPLOADED"
-                 OrderLog::create([
+                OrderLog::create([
                     'order_id' => $order->id,
                     'actor_user_id' => $order->user_id,
                     'event_type' => 'PAYMENT_PROOF_UPLOADED',

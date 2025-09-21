@@ -7,9 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\SystemLog;
-use DateInterval;
-use DatePeriod;
-use DateTime;
+use App\Models\OrderItem;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,60 +17,73 @@ use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
     public function index(Request $request)
-    {
-        // Fetch all order statuses for the dropdown filter
-        $orderStatus = OrderStatus::orderBy('order')->get();
+{
+    // 1. Mulai dengan query dasar TANPA sorting awal
+    // Ganti baris ini:
+    // $query = Order::with(['user', 'status'])->latest('order_date');
+    // Menjadi:
+    $query = Order::with(['user', 'status']);
 
-        // Fetch data for the dashboard widgets
-        $totalRevenue = Order::whereHas('status', function ($q) {
-            $q->where('order', '6');
-        })->sum('total_amount');
-        $pendingOrders = Order::whereHas('status', function ($q) {
-            $q->whereNotIn('order', ['6', '7', '8']);
-        })->count();
-
-
-        // Start with the base query for the orders table
-        $query = Order::with('user', 'status');
-        // Apply filters based on request input
-        if ($request->filled('status')) {
-            $query->where('order_status_id', $request->input('status'));
-        }
-
-        if ($request->filled('search')) {
-            $searchTerm = '%' . $request->input('search') . '%';
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('no_transaction', 'like', $searchTerm)
-                    ->orWhereHas('user', function ($q2) use ($searchTerm) {
-                        $q2->where('full_name', 'like', $searchTerm);
-                    });
-            });
-        }
-
-        // New: Apply date range filter
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('pickup_delivery_date', [$request->input('start_date'), $request->input('end_date')]);
-        }
-
-        // New: Handle sorting based on request input
-        $sortColumn = $request->get('sort', 'created_at'); // Default sort column
-        $sortDirection = $request->get('direction', 'desc'); // Default sort direction
-
-        // Validate sort column to prevent SQL injection
-        $allowedSortColumns = ['no_transaction', 'created_at', 'total_amount', 'pickup_delivery_date'];
-        if (in_array($sortColumn, $allowedSortColumns)) {
-            $query->orderBy($sortColumn, $sortDirection);
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
-
-        // Get the paginated orders
-        $orders = $query->paginate(10);
-        $totalOrders = $query->count();
-
-        // Pass all data to the view
-        return view('admin.order.index', compact('orders', 'orderStatus', 'totalOrders', 'totalRevenue', 'pendingOrders', 'sortColumn', 'sortDirection'));
+    // Terapkan filter berdasarkan request input
+    if ($request->filled('status')) {
+        $query->where('order_status_id', $request->input('status'));
     }
+
+    if ($request->filled('search')) {
+        $searchTerm = '%' . $request->input('search') . '%';
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('no_transaction', 'like', $searchTerm)
+                ->orWhereHas('user', function ($q2) use ($searchTerm) {
+                    $q2->where('full_name', 'like', $searchTerm);
+                });
+        });
+    }
+
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+        $query->whereBetween('order_date', [$request->input('start_date'), $request->input('end_date')]);
+    }
+
+    // 2. Hitung statistik SETELAH filter diterapkan
+    $statsQuery = clone $query; // Duplikasi query agar tidak mengganggu paginasi
+
+    $totalOrders = $statsQuery->count();
+    
+    $totalRevenue = (clone $statsQuery)->whereHas('status', function ($q) {
+        $q->where('status_name', 'Selesai');
+    })->sum('total_amount');
+    
+    $pendingOrders = (clone $statsQuery)->whereHas('status', function ($q) {
+        $q->whereNotIn('status_name', ['Selesai', 'Dibatalkan', 'Gagal']);
+    })->count();
+
+    // 3. Terapkan pengurutan (sorting)
+    $sortColumn = $request->get('sort', 'order_date'); // Default sort: tanggal pesanan
+    $sortDirection = $request->get('direction', 'desc');
+
+    $allowedSortColumns = ['no_transaction', 'order_date', 'total_amount', 'pickup_delivery_date'];
+    if (in_array($sortColumn, $allowedSortColumns)) {
+        $query->orderBy($sortColumn, $sortDirection);
+    } else {
+        // Fallback jika kolom sort tidak valid
+        $query->orderBy('order_date', 'desc');
+    }
+
+    // 4. Ambil data dengan paginasi DAN hitung jumlah item per pesanan
+    $orders = $query->withCount('items')->paginate(10)->withQueryString();
+
+    // Ambil semua status untuk dropdown filter (tidak terpengaruh oleh filter lain)
+    $orderStatus = OrderStatus::orderBy('order')->get();
+
+    return view('admin.order.index', compact(
+        'orders',
+        'orderStatus',
+        'totalOrders',
+        'totalRevenue',
+        'pendingOrders',
+        'sortColumn',
+        'sortDirection'
+    ));
+}
 
     public function update(Request $request, Order $order)
     {
@@ -236,47 +249,75 @@ class OrderController extends Controller
     // }
 
     public function report(Request $request)
-    {
-        $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
-        $endDate = $request->input('end_date', now()->toDateString());
-
-        $query = Order::whereBetween('order_date', [$startDate, $endDate . ' 23:59:59'])
-            ->with('user', 'status');
-
-        $orders = $query->get();
-
-        // Hitung metrik
-        $totalOrders = $orders->count();
-        $finishedOrders = $orders->where('is_finish', true);
-        $totalRevenue = $finishedOrders->sum('total_amount');
-        $averageOrderValue = $finishedOrders->count() > 0 ? $totalRevenue / $finishedOrders->count() : 0;
-        $cancelledFailedOrders = $orders->where('is_cancelled', true)->count();
-
-        // Data untuk grafik per tanggal
-        $chartData = [];
-        $dateRange = new DatePeriod(
-            new DateTime($startDate),
-            new DateInterval('P1D'),
-            new DateTime($endDate . ' 23:59:59')
-        );
-
-        foreach ($dateRange as $date) {
-            $dateKey = $date->format('Y-m-d');
-            $chartData[$dateKey] = $finishedOrders->filter(function ($order) use ($dateKey) {
-                return $order->order_date->format('Y-m-d') === $dateKey;
-            })->sum('total_amount');
-        }
-
-        return view('admin.order.report', compact(
-            'orders',
-            'totalOrders',
-            'totalRevenue',
-            'averageOrderValue',
-            'finishedOrders',
-            'cancelledFailedOrders',
-            'chartData',
-            'startDate',
-            'endDate'
-        ));
+{
+    // Gunakan Carbon untuk manajemen tanggal yang lebih aman dan validasi
+    try {
+        $startDate = Carbon::parse($request->input('start_date', now()->subDays(29)))->startOfDay();
+        $endDate = Carbon::parse($request->input('end_date', now()))->endOfDay();
+    } catch (\Exception $e) {
+        // Fallback jika input tanggal tidak valid
+        $startDate = now()->subDays(29)->startOfDay();
+        $endDate = now()->endOfDay();
     }
+
+    // --- QUERY OPTIMIZED UNTUK STATISTIK ---
+    // Buat query dasar yang akan kita gunakan berulang kali
+    $baseQuery = Order::whereBetween('order_date', [$startDate, $endDate]);
+
+    // Kalkulasi statistik langsung di database, bukan di collection
+    $totalOrders = (clone $baseQuery)->count();
+    $totalRevenue = (clone $baseQuery)->where('is_finish', true)->sum('total_amount');
+    $finishedOrdersCount = (clone $baseQuery)->where('is_finish', true)->count();
+    $pendingOrdersCount = (clone $baseQuery)->where('is_finish', false)->where('is_cancelled', false)->count();
+    $cancelledFailedOrders = (clone $baseQuery)->where('is_cancelled', true)->count();
+
+    // --- [FITUR BARU] QUERY PRODUK TERLARIS ---
+    $topSellingProducts = OrderItem::select('products.name', DB::raw('SUM(order_items.quantity) as total_sold'))
+        ->join('products', 'order_items.product_id', '=', 'products.id')
+        ->join('orders', 'order_items.order_id', '=', 'orders.id')
+        ->whereBetween('orders.order_date', [$startDate, $endDate])
+        ->where('orders.is_finish', true)
+        ->groupBy('products.name')
+        ->orderByDesc('total_sold')
+        ->limit(5)
+        ->get();
+
+    // --- QUERY UNTUK GRAFIK (OPTIMIZED) ---
+    $revenueOverTime = (clone $baseQuery)->where('is_finish', true)
+        ->select(
+            DB::raw('DATE(order_date) as date'),
+            DB::raw('SUM(total_amount) as total')
+        )
+        ->groupBy('date')
+        ->orderBy('date', 'asc')
+        ->get()
+        ->pluck('total', 'date');
+
+    // Siapkan data chart dengan semua tanggal dalam rentang, isi dengan 0 jika tidak ada penjualan
+    $chartData = [];
+    $period = CarbonPeriod::create($startDate, $endDate);
+    foreach ($period as $date) {
+        $dateKey = $date->format('Y-m-d');
+        $chartData[$dateKey] = $revenueOverTime->get($dateKey, 0);
+    }
+    
+    // --- QUERY UNTUK TABEL DETAIL DENGAN PAGINASI ---
+    $ordersForTable = (clone $baseQuery)->with('user', 'status')
+                                        ->latest('order_date')
+                                        ->paginate(15)
+                                        ->withQueryString();
+
+    return view('admin.order.report', [
+        'orders' => $ordersForTable, // Menggunakan data yang sudah dipaginasi
+        'totalOrders' => $totalOrders,
+        'totalRevenue' => $totalRevenue,
+        'finishedOrdersCount' => $finishedOrdersCount,
+        'pendingOrdersCount' => $pendingOrdersCount,
+        'cancelledFailedOrders' => $cancelledFailedOrders,
+        'topSellingProducts' => $topSellingProducts,
+        'chartData' => $chartData,
+        'startDate' => $startDate->toDateString(),
+        'endDate' => $endDate->toDateString(),
+    ]);
+}
 }

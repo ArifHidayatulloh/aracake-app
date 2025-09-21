@@ -49,6 +49,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
             Route::post('/store', [CategoryController::class, 'store'])->name('admin.category.store');
             Route::get('/edit/{category:slug}', [CategoryController::class, 'edit'])->name('admin.category.edit');
             Route::put('/update/{category:slug}', [CategoryController::class, 'update'])->name('admin.category.update');
+            Route::patch('/admin/categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('admin.category.toggleStatus');
+            Route::delete('/admin/categories/{category}', [CategoryController::class, 'destroy'])->name('admin.category.destroy');
             Route::get('/set-active/{category:slug}', [CategoryController::class, 'setActive'])->name('admin.category.set-active');
         });
         // ---- End Kategori Produk ---- //
@@ -110,6 +112,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
             Route::get('/edit/{product:slug}', [ProductController::class, 'edit'])->name('admin.product.edit');
             Route::put('/update/{product:slug}', [ProductController::class, 'update'])->name('admin.product.update');
             Route::delete('/destroy/{product:slug}', [ProductController::class, 'destroy'])->name('admin.product.destroy');
+            Route::patch('/{product:slug}/toggle-status', [ProductController::class, 'toggleStatus'])->name('admin.product.toggleStatus');
         });
         // ---- End Rute untuk Product ---- //
 

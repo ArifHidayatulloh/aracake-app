@@ -11,13 +11,13 @@
                 @csrf
                 @method('PUT')
                 <x-form.input typ="text" name="status_name" label="Nama Status" error="$errors->first('status_name')"
-                    value="{{ $orderStatus->status_name }}" required />
+                    value="{{ $orderStatus->status_name }}" required readonly/>
 
                 <x-form.input typ="text" name="order" label="Urutan" error="$errors->first('order')"
                     value="{{ $orderStatus->order }}" required readonly />
 
                 <x-form.textarea name="description" label="Deskripsi Status" error="$errors->first('description')"
-                    rows="4" value="{{ $orderStatus->description }}" />
+                    rows="4" value="{{ $orderStatus->description }}" readonly/>
 
                 <x-form.input typ="text" name="status_color" label="Warna Status" error="$errors->first('status_color')"
                     value="{{ $orderStatus->status_color }}" required aria-placeholder="Gunakan warna hexadecimal" />

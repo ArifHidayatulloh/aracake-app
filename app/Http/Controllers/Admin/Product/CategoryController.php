@@ -42,30 +42,55 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
+    // public function index(Request $request)
+    // {
+    //     $searchParam = is_array($request->search) ? ($request->search[0] ?? '') : ($request->search ?? '');
+    //     $isActiveParam = is_array($request->is_active) ? ($request->is_active[0] ?? null) : ($request->is_active ?? null); // Keep null for no filter
+
+    //     $categoryQuery = ProductCategory::query();
+
+    //     if (!empty($searchParam)) {
+    //         $categoryQuery->where('name', 'like', '%' . $searchParam . '%');
+    //     }
+
+    //     // Only apply is_active filter if it's explicitly set (0 or 1)
+    //     if (!is_null($isActiveParam)) {
+    //         // Cast to boolean if it comes as '0' or '1' string
+    //         $categoryQuery->where('is_active', (bool) $isActiveParam);
+    //     }
+
+    //     // Pass the normalized parameters to appends to maintain filters in pagination links
+    //     $categories = $categoryQuery->paginate(10)->appends([
+    //         'search' => $searchParam,
+    //         'is_active' => $isActiveParam,
+    //     ]);
+
+    //     return view('admin.category.index', compact('categories'));
+    // }
+
     public function index(Request $request)
     {
-        $searchParam = is_array($request->search) ? ($request->search[0] ?? '') : ($request->search ?? '');
-        $isActiveParam = is_array($request->is_active) ? ($request->is_active[0] ?? null) : ($request->is_active ?? null); // Keep null for no filter
-
-        $categoryQuery = ProductCategory::query();
-
-        if (!empty($searchParam)) {
-            $categoryQuery->where('name', 'like', '%' . $searchParam . '%');
-        }
-
-        // Only apply is_active filter if it's explicitly set (0 or 1)
-        if (!is_null($isActiveParam)) {
-            // Cast to boolean if it comes as '0' or '1' string
-            $categoryQuery->where('is_active', (bool) $isActiveParam);
-        }
-
-        // Pass the normalized parameters to appends to maintain filters in pagination links
-        $categories = $categoryQuery->paginate(10)->appends([
-            'search' => $searchParam,
-            'is_active' => $isActiveParam,
-        ]);
+        // Use Laravel's built-in filtering for cleaner code
+        $categories = ProductCategory::query()
+            ->withCount('products') // EFFICIENTLY COUNT PRODUCTS
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->search . '%');
+            })
+            ->when($request->filled('is_active'), function ($query) use ($request) {
+                $query->where('is_active', $request->is_active);
+            })
+            ->latest() // Default sort by newest
+            ->paginate(10)
+            ->withQueryString(); // Automatically appends all filter parameters
 
         return view('admin.category.index', compact('categories'));
+    }
+    
+    // NEW METHOD to handle the toggle switch
+    public function toggleStatus(ProductCategory $category)
+    {
+        $category->update(['is_active' => !$category->is_active]);
+        return back()->with('success', 'Status kategori berhasil diperbarui.');
     }
 
 
@@ -189,5 +214,20 @@ class CategoryController extends Controller
             $category->save();
             return redirect()->route('admin.category.index')->with('success', 'Kategori produk berhasil diaktifkan.');
         }
+    }
+
+    // NEW METHOD for safe deletion
+    public function destroy(ProductCategory $category)
+    {
+        // Prevent deletion if the category has products
+        if ($category->products()->count() > 0) {
+            return back()->with('error', 'Kategori tidak dapat dihapus karena masih memiliki produk terkait.');
+        }
+
+        // Add logic to delete the image from storage if it exists
+        Storage::disk('public')->delete($category->image);
+
+        $category->delete();
+        return back()->with('success', 'Kategori berhasil dihapus.');
     }
 }

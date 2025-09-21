@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\OrderStatus;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -16,26 +18,44 @@ class DashboardController extends Controller
 {
     public function dashboard()
     {
-        // Mendapatkan bulan ini dan bulan sebelumnya
-        $currentMonth = Carbon::now()->month;
-        $previousMonth = Carbon::now()->subMonth()->month;
-        $currentYear = Carbon::now()->year;
+        // --- LOGIKA TANGGAL YANG LEBIH AMAN ---
+        $now = Carbon::now();
+        $previousMonthDate = $now->copy()->subMonthNoOverflow();
 
-        // Mendapatkan statistik utama untuk widget
-        $totalOrderThisMonth = Order::whereMonth('order_date', $currentMonth)
-            ->whereYear('order_date', $currentYear)
+        // --- STATISTIK KARTU UTAMA (WIDGETS) ---
+
+        // Total pesanan bulan ini
+        $totalOrderThisMonth = Order::whereYear('order_date', $now->year)
+            ->whereMonth('order_date', $now->month)
             ->count();
-
-        $totalOrderPreviousMonth = Order::whereMonth('order_date', $previousMonth)
-            ->whereYear('order_date', $currentYear)
+        
+        // Total pesanan bulan lalu (untuk perbandingan)
+        $totalOrderPreviousMonth = Order::whereYear('order_date', $previousMonthDate->year)
+            ->whereMonth('order_date', $previousMonthDate->month)
             ->count();
-
-        $totalProduct = Product::where('is_active', true)->count();
-
-        $totalRevenueThisMonth = Order::whereMonth('order_date', $currentMonth)
-            ->whereYear('order_date', $currentYear)
+        
+        // Total pendapatan selesai bulan ini
+        $totalRevenueThisMonth = Order::whereYear('order_date', $now->year)
+            ->whereMonth('order_date', $now->month)
             ->where('is_finish', true)
             ->sum('total_amount');
+
+        // Total semua pesanan
+        $totalOrders = Order::count();
+
+        // Total produk aktif
+        $totalProduct = Product::where('is_active', true)->count();
+        
+        // [BARU] Pesanan yang perlu tindakan
+        $actionableStatusIds = OrderStatus::whereIn('status_name', [
+            'Menunggu Konfirmasi Pembayaran',
+            'Pembayaran dikonfirmasi',
+            'Pesanan Diproses'
+        ])->pluck('id');
+        $ordersNeedingAction = Order::whereIn('order_status_id', $actionableStatusIds)
+            ->where('is_finish', false)
+            ->where('is_cancelled', false)
+            ->count();
 
         // Menghitung persentase perubahan pesanan
         $orderPercentageChange = 0;
@@ -43,14 +63,28 @@ class DashboardController extends Controller
             $orderPercentageChange = (($totalOrderThisMonth - $totalOrderPreviousMonth) / $totalOrderPreviousMonth) * 100;
         }
 
-        // Mendapatkan 5 pesanan terbaru yang belum selesai (pending)
+        // --- DATA UNTUK TABEL & DAFTAR ---
+
+        // 5 pesanan terbaru yang butuh perhatian
         $newOrder = Order::with('user', 'status')
             ->where('is_finish', false)
-            ->latest()
+            ->where('is_cancelled', false)
+            ->latest('order_date')
             ->limit(5)
             ->get();
 
-        // Mendapatkan data untuk grafik penjualan bulanan
+        // [BARU] 5 Produk Terlaris 30 hari terakhir
+        $topSellingProducts = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.is_finish', true) // Hanya dari pesanan yang selesai
+            ->where('orders.order_date', '>=', Carbon::now()->subDays(30))
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->with('product:id,name') // Ambil hanya id dan nama produk
+            ->limit(5)
+            ->get();
+
+        // --- DATA UNTUK GRAFIK PENJUALAN ---
         $monthlySalesData = Order::select(
             DB::raw('DATE_FORMAT(order_date, "%Y-%m") as month'),
             DB::raw('SUM(total_amount) as total_sales')
@@ -73,11 +107,15 @@ class DashboardController extends Controller
             $start->addMonth();
         }
 
+        // Mengirim semua data ke view
         return view('admin.dashboard', compact(
+            'totalOrders',
             'totalOrderThisMonth',
             'totalProduct',
             'totalRevenueThisMonth',
+            'ordersNeedingAction',
             'newOrder',
+            'topSellingProducts',
             'orderPercentageChange',
             'labels',
             'data'
