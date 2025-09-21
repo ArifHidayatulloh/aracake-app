@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderLog extends Model
 {
+    use HasFactory;
     /**
      * Disable updated_at and created_at timestamps.
      * The `timestamp` column will be manually managed by `useCurrent()`.

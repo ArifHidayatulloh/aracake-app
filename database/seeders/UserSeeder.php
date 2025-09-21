@@ -16,35 +16,27 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        /**
-         * Admin
-         */
-        User::create([
+        // 1. Membuat Admin Utama (data statis)
+        User::factory()->create([
             'full_name' => 'Admin Toko',
             'username' => 'admin',
             'email' => 'admin@example.com',
             'phone_number' => '081234567890',
-            'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'role' => 'admin',
         ]);
 
-        /**
-         * Customer
-         */
-
-        $faker = Faker::create('id_ID');
-
-        for ($i = 0; $i < 20; $i++) {
-            User::create([
-                'full_name' => $faker->name,
-                'username' => $faker->userName,
-                'email' => $faker->email,
-                'phone_number' => $faker->phoneNumber,
-                'email_verified_at' => now(),
-                'password' => Hash::make('password'),
-                'role' => 'customer',
-            ]);
-        }
+        // 2. Membuat 1 Customer dengan data statis (untuk mempermudah demo login)
+        User::factory()->create([
+            'full_name' => 'Arif Hidayatulloh',
+            'username' => 'arif',
+            'email' => 'hidayatulloharif590@gmail.com',
+            'phone_number' => '089684914092',
+            'role' => 'customer',
+        ]);
+        
+        // 3. Membuat 4 Customer lainnya dengan data acak dari Factory
+        // Factory akan otomatis menjalankan fungsi afterCreating untuk membuat Cart
+        User::factory()->count(4)->create();
     }
 }

@@ -18,7 +18,7 @@ class PaymentMethodSeeder extends Seeder
             [
                 'method_name'     => 'Transfer Bank BCA',
                 'account_number'  => '1234567890',
-                'account_details' => 'A/N Toko Kue Hana',
+                'account_details' => 'A/N Toko Kue Ara',
                 'description'     => 'Pembayaran melalui transfer ke rekening BCA',
                 'is_active'       => true,
                 'created_at'      => Carbon::now(),
@@ -27,7 +27,7 @@ class PaymentMethodSeeder extends Seeder
             [
                 'method_name'     => 'Transfer Bank BRI',
                 'account_number'  => '0987654321',
-                'account_details' => 'A/N Toko Kue Hana',
+                'account_details' => 'A/N Toko Kue Ara',
                 'description'     => 'Pembayaran melalui transfer ke rekening BRI',
                 'is_active'       => true,
                 'created_at'      => Carbon::now(),

@@ -16,13 +16,15 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
-            UserAddress::class,
-            OrderStatusSeeder::class,
+            UserAddressSeeder::class,
             CategorySeeder::class,
+            ProductSeeder::class,
+
             PaymentMethodSeeder::class,
             DeliveryMethodSeeder::class,
             SystemSettingSeeder::class,
-            WorkingHourSeeder::class
+            OrderStatusSeeder::class,
+            OrderSeeder::class,
         ]);
 
 

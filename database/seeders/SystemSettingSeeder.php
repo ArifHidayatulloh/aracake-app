@@ -28,7 +28,7 @@ class SystemSettingSeeder extends Seeder
             ],
             [
                 'setting_key' => 'store_phone',
-                'setting_value' => '021-7890123',
+                'setting_value' => '08872546438',
                 'description' => 'Nomor telepon kontak toko.',
                 'type' => 'string',
             ],
@@ -39,25 +39,29 @@ class SystemSettingSeeder extends Seeder
                 'type' => 'string',
             ],
             [
+                'setting_key' => 'store_facebook',
+                'setting_value' => 'https://www.facebook.com/PrabowoSubianto',
+                'description' => 'Facebook toko.',
+                'type' => 'string',
+            ],
+            [
+                'setting_key' => 'store_instagram',
+                'setting_value' => 'https://www.instagram.com/regitaembun_04',
+                'description' => 'Instagram toko.',
+                'type' => 'string',
+            ],
+            [
+                'setting_key' => 'store_youtube',
+                'setting_value' => 'https://youtu.be/mQbIOUgBr5I?si=VNSYd815IUoBWrQt',
+                'description' => 'YouTube toko.',
+                'type' => 'string',
+            ],
+            [
                 'setting_key' => 'delivery_radius_km',
                 'setting_value' => '15.5',
                 'description' => 'Radius maksimum pengiriman lokal dalam kilometer.',
                 'type' => 'decimal',
             ],
-            // [
-            //     'setting_key' => 'working_hours',
-            //     'setting_value' => json_encode([
-            //         'Monday' => '09:00-17:00',
-            //         'Tuesday' => '09:00-17:00',
-            //         'Wednesday' => '09:00-17:00',
-            //         'Thursday' => '09:00-17:00',
-            //         'Friday' => '09:00-17:00',
-            //         'Saturday' => '10:00-15:00',
-            //         'Sunday' => 'Closed',
-            //     ]),
-            //     'description' => 'Jam operasional toko.',
-            //     'type' => 'json',
-            // ],
         ];
 
         foreach ($settings as $setting) {
