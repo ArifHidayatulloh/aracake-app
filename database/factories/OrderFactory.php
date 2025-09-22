@@ -9,133 +9,104 @@ use App\Models\OrderStatus;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Order>
- */
 class OrderFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-
-    protected $model = \App\Models\Order::class;
+    protected $model = Order::class;
 
     public function definition(): array
     {
-        // Ambil customer, metode pengiriman, dan pembayaran secara acak
         $customer = User::where('role', 'customer')->inRandomOrder()->first();
         $deliveryMethod = \App\Models\DeliveryMethod::inRandomOrder()->first();
         $paymentMethod = \App\Models\PaymentMethod::inRandomOrder()->first();
-
-        // Tentukan tanggal pesanan secara acak dari 3 bulan lalu sampai hari ini
         $orderDate = $this->faker->dateTimeBetween('-3 months', 'now');
-        $pickupDate = (clone $orderDate)->modify('+' . rand(3, 10) . ' days');
-
+        
         return [
             'no_transaction' => 'ARA-' . Str::upper(Str::random(3)) . '-' . $orderDate->format('YmdHis'),
             'user_id' => $customer->id,
-            'order_status_id' => 1, // Status awal acak
+            'order_status_id' => OrderStatus::where('order', 1)->first()->id, 
             'delivery_method_id' => $deliveryMethod->id,
             'pickup_delivery_address_id' => $customer->addresses()->inRandomOrder()->first()->id ?? null,
             'payment_method_id' => $paymentMethod->id,
             'order_date' => $orderDate,
-            'pickup_delivery_date' => $pickupDate,
-            'total_amount' => 0, // Akan dihitung ulang nanti
-            'delivery_cost' => $deliveryMethod->is_pickup ? 0 : 0, // Di seeder ini kita anggap gratis dulu
-            'notes' => $this->faker->optional(0.3)->sentence, // 30% pesanan punya catatan
-            'is_cancelled' => false,
-            'cancellation_reason' => null,
-            'is_finish' => false,
+            'pickup_delivery_date' => (clone $orderDate)->modify('+' . rand(3, 10) . ' days'),
+            'total_amount' => 0, 'delivery_cost' => 0, 'notes' => $this->faker->optional(0.3)->sentence,
+            'is_cancelled' => false, 'cancellation_reason' => null, 'is_finish' => false,
         ];
     }
 
-     /**
-     * Configure the model factory.
-     */
     public function configure(): static
     {
         return $this->afterCreating(function (Order $order) {
-            // == LOGIKA CERDAS DIMULAI DI SINI ==
-
+            $allStatuses = OrderStatus::orderBy('order')->get()->keyBy('order');
+            $finalStatus = $allStatuses->random();
+            
             $subtotal = 0;
-            // 1. Buat 1 sampai 3 item pesanan (OrderItems) untuk setiap pesanan
             $products = Product::inRandomOrder()->limit(rand(1, 3))->get();
             foreach ($products as $product) {
                 $quantity = rand(1, 2);
                 $itemSubtotal = $product->price * $quantity;
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $product->id,
-                    'quantity' => $quantity,
-                    'unit_price' => $product->price,
-                    'subtotal' => $itemSubtotal,
-                ]);
+                OrderItem::create(['order_id' => $order->id, 'product_id' => $product->id, 'quantity' => $quantity, 'unit_price' => $product->price, 'subtotal' => $itemSubtotal]);
                 $subtotal += $itemSubtotal;
             }
-
-            // 2. Update total_amount di pesanan utama berdasarkan subtotal item
             $order->total_amount = $subtotal + $order->delivery_cost;
             $order->save();
 
-            // 3. Buat Log pertama: "ORDER_CREATED"
-            OrderLog::create([
-                'order_id' => $order->id,
-                'actor_user_id' => $order->user_id,
-                'event_type' => 'ORDER_CREATED',
-                'message' => 'Pesanan dibuat oleh pelanggan.',
-                'timestamp' => $order->order_date,
-            ]);
+            $currentTime = Carbon::parse($order->order_date);
 
-            // 4. Logika berdasarkan Status Pesanan
-            $status = $order->status; // Mengambil relasi status
+            foreach ($allStatuses as $level => $status) {
+                if ($level > $finalStatus->order) break;
+                
+                $currentTime->addHours(rand(1, 48));
+                
+                $previousStatus = $allStatuses->get($level - 1);
 
-            // Jika status BUKAN "Menunggu Pembayaran", maka buat data pembayaran (Payment)
-            if ($status->order > 1) { 
-                Payment::create([
-                    'order_id' => $order->id,
-                    'payment_method_id' => $order->payment_method_id,
-                    'payment_date' => (clone $order->order_date)->modify('+' . rand(0, 24) . ' hours'),
-                    'proof_of_payment_url' => null,
-                    'is_confirmed' => ($status->order > 2), // Terkonfirmasi jika statusnya sudah lewat "Menunggu Konfirmasi"
-                    'confirmed_by_user_id' => ($status->order > 2) ? User::where('role', 'admin')->first()->id : null,
-                    'confirmed_at' => ($status->order > 2) ? (clone $order->order_date)->modify('+2 days') : null,
-                ]);
-
-                // Buat Log: "PAYMENT_PROOF_UPLOADED"
-                OrderLog::create([
-                    'order_id' => $order->id,
-                    'actor_user_id' => $order->user_id,
-                    'event_type' => 'PAYMENT_PROOF_UPLOADED',
-                    'message' => 'Bukti pembayaran diunggah.',
-                    'timestamp' => (clone $order->order_date)->modify('+1 hours'),
-                ]);
+                switch ($level) {
+                    case 1:
+                        OrderLog::create(['order_id' => $order->id, 'actor_user_id' => $order->user_id, 'event_type' => 'ORDER_CREATED', 'message' => 'Pesanan dibuat oleh pelanggan.', 'timestamp' => $order->order_date, 'new_value' => $status->status_name]);
+                        break;
+                    case 2:
+                        Payment::create(['order_id' => $order->id, 'payment_method_id' => $order->payment_method_id, 'payment_date' => $currentTime, 'proof_of_payment_url' => '', 'is_confirmed' => false]);
+                        OrderLog::create(['order_id' => $order->id, 'actor_user_id' => $order->user_id, 'event_type' => 'PAYMENT_PROOF_UPLOADED', 'message' => 'Bukti pembayaran diunggah.', 'timestamp' => $currentTime, 'old_value' => $previousStatus?->status_name, 'new_value' => $status->status_name]);
+                        break;
+                    case 3:
+                        $order->payment()->update(['is_confirmed' => true, 'confirmed_by_user_id' => User::where('role', 'admin')->first()->id, 'confirmed_at' => $currentTime]);
+                        OrderLog::create(['order_id' => $order->id, 'actor_user_id' => User::where('role', 'admin')->first()->id, 'event_type' => 'PAYMENT_CONFIRMED', 'message' => 'Pembayaran dikonfirmasi admin.', 'timestamp' => $currentTime, 'old_value' => $previousStatus?->status_name, 'new_value' => $status->status_name]);
+                        break;
+                    case 4:
+                        OrderLog::create(['order_id' => $order->id, 'actor_user_id' => User::where('role', 'admin')->first()->id, 'event_type' => 'ORDER_PROCESSED', 'message' => 'Pesanan mulai diproses.', 'timestamp' => $currentTime, 'old_value' => $previousStatus?->status_name, 'new_value' => $status->status_name]);
+                        break;
+                    case 5:
+                         OrderLog::create(['order_id' => $order->id, 'actor_user_id' => User::where('role', 'admin')->first()->id, 'event_type' => 'DELIVERY_ASSIGNED', 'message' => 'Pesanan siap untuk diambil/dikirim.', 'timestamp' => $currentTime, 'old_value' => $previousStatus?->status_name, 'new_value' => $status->status_name]);
+                        break;
+                    case 6: // Selesai
+                        // [PERBAIKAN KUNCI] Hanya buat log 'Selesai' jika status akhirnya BUKAN 'Dibatalkan' atau 'Gagal'
+                        if (!in_array($finalStatus->status_name, ['Dibatalkan', 'Gagal'])) {
+                             OrderLog::create(['order_id' => $order->id, 'actor_user_id' => User::where('role', 'admin')->first()->id, 'event_type' => 'ORDER_COMPLETED', 'message' => 'Pesanan selesai.', 'timestamp' => $currentTime, 'old_value' => $previousStatus?->status_name, 'new_value' => $status->status_name]);
+                        }
+                        break;
+                }
             }
 
-            // Jika status "Selesai", "Dibatalkan", atau "Gagal"
-            if (in_array($status->status_name, ['Selesai', 'Dibatalkan', 'Gagal'])) {
-                if ($status->status_name === 'Selesai') {
-                    $order->is_finish = true;
-                }
-                if (in_array($status->status_name, ['Dibatalkan', 'Gagal'])) {
-                    $order->is_cancelled = true;
-                    $order->cancellation_reason = 'Dibatalkan otomatis oleh sistem seeder.';
-                }
-                $order->save();
+            if ($finalStatus->status_name === 'Selesai') {
+                $order->is_finish = true;
+                $order->is_cancelled = false;
+            } elseif (in_array($finalStatus->status_name, ['Dibatalkan', 'Gagal'])) {
+                $order->is_finish = false;
+                $order->is_cancelled = true;
+                $order->cancellation_reason = 'Dibatalkan/Gagal oleh sistem seeder.';
+                
+                $lastValidStatusKey = collect([1,2,3,4,5])->filter(fn($val) => $val < $finalStatus->order)->last();
+                $lastValidStatus = $allStatuses->get($lastValidStatusKey);
 
-                // Buat Log terakhir
-                OrderLog::create([
-                    'order_id' => $order->id,
-                    'actor_user_id' => User::where('role', 'admin')->first()->id,
-                    'event_type' => $status->status_name === 'Selesai' ? 'ORDER_COMPLETED' : 'ORDER_CANCELLED',
-                    'message' => 'Pesanan ditandai sebagai ' . strtolower($status->status_name) . ' oleh admin.',
-                    'timestamp' => (clone $order->pickup_delivery_date)->modify('+1 days'),
-                ]);
+                OrderLog::create(['order_id' => $order->id, 'actor_user_id' => User::where('role', 'admin')->first()->id, 'event_type' => 'ORDER_CANCELLED', 'message' => 'Pesanan dibatalkan.', 'timestamp' => $currentTime->addHours(1), 'old_value' => $lastValidStatus?->status_name, 'new_value' => $finalStatus->status_name]);
             }
+            
+            $order->order_status_id = $finalStatus->id;
+            $order->save();
         });
     }
 }

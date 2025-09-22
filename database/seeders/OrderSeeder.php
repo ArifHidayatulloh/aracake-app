@@ -16,6 +16,7 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
+        // Cukup panggil factory, sisanya akan diurus secara otomatis
         Order::factory()->count(50)->create();
     }
 }
