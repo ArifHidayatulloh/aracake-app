@@ -1,19 +1,3 @@
-@php
-    function hexToRgba($hex, $alpha = 0.15)
-    {
-        $hex = str_replace('#', '', $hex);
-        if (strlen($hex) == 3) {
-            $r = hexdec(str_repeat(substr($hex, 0, 1), 2));
-            $g = hexdec(str_repeat(substr($hex, 1, 1), 2));
-            $b = hexdec(str_repeat(substr($hex, 2, 1), 2));
-        } else {
-            $r = hexdec(substr($hex, 0, 2));
-            $g = hexdec(substr($hex, 2, 2));
-            $b = hexdec(substr($hex, 4, 2));
-        }
-        return "rgba($r, $g, $b, $alpha)";
-    }
-@endphp
 @extends('layouts.guest', ['title' => 'Detail Pesanan'])
 
 @section('content')
@@ -34,7 +18,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-800 mb-2">Pesanan
-                        #{{ $order->no_transaction ?? 'ORD-2025-001' }}</h1>
+                        #{{ $order->no_transaction ?? 'N/A' }}</h1>
                     <p class="text-gray-600">Dipesan pada {{ $order->order_date->format('d M Y, H:i') }} WIB</p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
@@ -52,6 +36,22 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2">
 
+                {{-- [BARU] Notifikasi Batas Waktu Pembayaran --}}
+                @if ($paymentExpiry && now()->isBefore($paymentExpiry))
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-lg">
+                        <div class="flex">
+                            <div class="py-1"><i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i></div>
+                            <div>
+                                <p class="font-bold text-yellow-800">Selesaikan Pembayaran</p>
+                                <p class="text-sm text-yellow-700">
+                                    Harap selesaikan pembayaran sebelum <strong>{{ $paymentExpiry->format('d M Y, H:i') }}
+                                        WIB</strong> untuk menghindari pembatalan otomatis.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
 
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-6">Item Pesanan</h2>
@@ -59,8 +59,15 @@
                     <div class="space-y-4">
                         @foreach ($order->items as $item)
                             <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                                <img src="{{ $item->product->image_url }}" alt="Chocolate Dream"
-                                    class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
+                                @if ($item->product->image_url)
+                                    <img src="{{ $item->product->image_url }}" alt="{{ $item->product->name }}"
+                                        class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
+                                @else
+                                    <div
+                                        class="w-20 h-20 bg-gray-200 flex items-center justify-center rounded-lg flex-shrink-0">
+                                        <i class="fas fa-image text-gray-400 text-3xl"></i>
+                                    </div>
+                                @endif
                                 <div class="flex-1">
                                     <h3 class="font-semibold text-gray-800">{{ $item->product->name }}</h3>
                                     <div class="text-sm text-gray-600 space-y-1">
@@ -75,7 +82,8 @@
                         @endforeach
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6">
+
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-6">Informasi Pembayaran</h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -103,17 +111,16 @@
                                 </div>
                             </div>
                         @elseif($order->status->order == '2')
+                            {{-- Sedang Diverifikasi --}}
                             <div>
                                 <h3 class="font-semibold text-gray-800 mb-3">Status Pembayaran</h3>
                                 <div class="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                                     <div class="flex items-center mb-2">
-                                        <i class="fas fa-clock text-orange-500 mr-2"></i>
+                                        <i class="fas fa-hourglass-half text-orange-500 mr-2"></i>
                                         <span class="font-medium text-orange-800">Sedang Diverifikasi</span>
                                     </div>
-                                    <p class="text-sm text-orange-700">Bukti pembayaran telah diterima</p>
-                                    <p class="text-sm text-orange-600">Upload:
-                                        {{ $order->payment->payment_date->format('d M Y, H:i') }}
-                                    </p>
+                                    <p class="text-sm text-orange-700">Bukti pembayaran telah diterima dan sedang kami
+                                        periksa.</p>
                                 </div>
                             </div>
                         @else
@@ -168,90 +175,48 @@
                         <div class="absolute left-6 top-8 bottom-8 w-0.5 bg-gray-200"></div>
 
                         <div class="space-y-6">
-                            @php
-                                $allEvents = [
-                                    'ORDER_CREATED' => 'Pesanan dibuat',
-                                    'PAYMENT_PROOF_UPLOADED' => 'Pelanggan mengunggah bukti pembayaran',
-                                    'PAYMENT_CONFIRMED' => 'Pembayaran dikonfirmasi',
-                                    'ORDER_PROCESSED' => 'Pesanan sedang diproses',
-                                    'DELIVERY_ASSIGNED' => 'Pesanan siap diambil/sedang dikirim',
-                                    'ORDER_COMPLETED' => 'Pesanan selesai',
-                                    'ORDER_CANCELLED' => 'Pesanan dibatalkan',
-                                    'ORDER_FAILED' => 'Pesanan gagal',
-                                ];
-
-                                $terminalEvents = ['ORDER_CANCELLED', 'ORDER_FAILED'];
-                                $logs = $order->logs;
-                                $completedEvents = $logs->pluck('event_type')->all();
-
-                                $hasTerminal = false;
-                                foreach ($terminalEvents as $event) {
-                                    if (in_array($event, $completedEvents)) {
-                                        $hasTerminal = $event;
-                                        break;
-                                    }
-                                }
-                            @endphp
-
-                            @foreach ($allEvents as $eventType => $eventAlias)
-                                @php
-                                    $isCompleted = in_array($eventType, $completedEvents);
-                                    $log = $isCompleted ? $logs->firstWhere('event_type', $eventType) : null;
-
-                                    // Jangan tampilkan terminal event sebagai pending kalau belum terjadi
-                                    if (!$isCompleted && !$hasTerminal && in_array($eventType, $terminalEvents)) {
-                                        continue;
-                                    }
-                                @endphp
-
-                                @if ($isCompleted)
-                                    <div class="flex items-start space-x-4">
+                            {{-- [PERBAIKAN] Menggunakan variabel $timeline dari Controller --}}
+                            @foreach ($timeline as $event)
+                                <div class="flex items-start space-x-4">
+                                    @if ($event['status'] === 'completed')
                                         <div
                                             class="flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 relative z-10
-                        @if (in_array($eventType, $terminalEvents)) bg-red-500 text-white @else bg-green-500 text-white @endif">
-                                            <i
-                                                class="fas @if (in_array($eventType, $terminalEvents)) fa-times @else fa-check @endif"></i>
+                                            {{ $event['is_terminal'] ? 'bg-red-500 text-white' : 'bg-green-500 text-white' }}">
+                                            <i class="fas {{ $event['is_terminal'] ? 'fa-times' : 'fa-check' }}"></i>
                                         </div>
                                         <div class="flex-1 pt-2">
                                             <div class="flex flex-col sm:flex-row sm:items-center justify-between">
                                                 <div>
-                                                    <h3 class="font-semibold text-gray-800">{{ $eventAlias }}</h3>
-                                                    <p class="text-sm text-gray-600">
-                                                        {{ $log->message ?? 'Menunggu aksi...' }}</p>
+                                                    <h3 class="font-semibold text-gray-800">{{ $event['alias'] }}</h3>
+                                                    <p class="text-sm text-gray-600">{{ $event['log']->message ?? '' }}</p>
                                                 </div>
                                                 <span class="text-sm text-gray-500 mt-1 sm:mt-0">
-                                                    {{ $log->timestamp->format('d M Y, H:i') }}
+                                                    {{ $event['log'] ? $event['log']->timestamp->format('d M Y, H:i') : '' }}
                                                 </span>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    @if (in_array($eventType, $terminalEvents))
-                                        @break
-                                    @endif
-                                @else
-                                    @if (!$hasTerminal)
-                                        <div class="flex items-start space-x-4">
-                                            <div
-                                                class="flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 relative z-10 bg-gray-200 text-gray-500">
-                                                <i class="fas fa-circle"></i>
-                                            </div>
-                                            <div class="flex-1 pt-2">
-                                                <div class="flex flex-col sm:flex-row sm:items-center justify-between">
-                                                    <div>
-                                                        <h3 class="font-semibold text-gray-400">{{ $eventAlias }}</h3>
-                                                        <p class="text-sm text-gray-400">Menunggu aksi...</p>
-                                                    </div>
+                                    @else
+                                        {{-- Status 'pending' --}}
+                                        <div
+                                            class="flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 relative z-10 bg-gray-200 text-gray-500">
+                                            <i class="fas fa-circle"></i>
+                                        </div>
+                                        <div class="flex-1 pt-2">
+                                            <div class="flex flex-col sm:flex-row sm:items-center justify-between">
+                                                <div>
+                                                    <h3 class="font-semibold text-gray-400">{{ $event['alias'] }}</h3>
+                                                    <p class="text-sm text-gray-400">Menunggu aksi...</p>
                                                 </div>
                                             </div>
                                         </div>
                                     @endif
-                                @endif
+                                </div>
                             @endforeach
                         </div>
                     </div>
 
                     @if ($order->status->order == '5')
+                        {{-- Status: Siap Diambil/Dikirim --}}
                         <form action="{{ route('customer.order.accepted', $order->no_transaction) }}" method="post">
                             @csrf
                             @method('PUT')
@@ -301,9 +266,20 @@
                             </div>
                         </div>
                         <div class="mt-3 p-3 bg-blue-50 rounded-lg">
-                            <p class="text-sm font-medium text-blue-800 mb-1">Alamat Toko:</p>
-                            <p class="text-sm text-blue-700">{{ $systemSetting['store_address']->setting_value ?? '' }}
-                            </p>
+                            @if ($order->deliveryMethod->is_pickup == false)
+                                <p class="text-sm font-medium text-blue-800 mb-1">Alamat Pengiriman:</p>
+                                <p class="text-sm text-blue-700">
+                                    {{ $order->address->address_line1 }},
+                                    {{ $order->address->address_line2 ? $order->address->address_line2 . ', ' : '' }} <br>
+                                    {{ $order->address->city }}, {{ $order->address->province }},
+                                    {{ $order->address->postal_code }}
+                                </p>
+                            @else
+                                <p class="text-sm font-medium text-blue-800 mb-1">Alamat Toko:</p>
+                                {{-- [PERBAIKAN] Mengakses system setting sebagai array --}}
+                                <p class="text-sm text-blue-700">
+                                    {{ $systemSetting['store_address'] ?? 'Alamat tidak diatur.' }}</p>
+                            @endif
                         </div>
                     </div>
 
@@ -315,11 +291,10 @@
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Biaya Pengiriman:</span>
-                            @if ($order->delivery_cost == 0)
-                                <span class="font-medium text-green-600">Gratis</span>
+                            @if ($order->deliveryMethod->is_pickup == true)
+                                <span class="font-medium text-green-600 text-end">Gratis</span>
                             @else
-                                <span class="font-medium">Rp
-                                    {{ number_format($order->delivery_cost, 0, ',', '.') }}</span>
+                                <span class="font-small text-gray-600 text-end">Sesuai Aplikasi <br>(Ditanggung customer)</span>
                             @endif
                         </div>
                         <div class="border-t border-gray-200 pt-3 flex justify-between">
@@ -333,18 +308,18 @@
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
                     <h3 class="font-semibold text-gray-800 mb-4">Tindakan</h3>
                     <div class="space-y-3">
-                        <a href="https://api.whatsapp.com/send?phone={{ $systemSetting['store_phone']->setting_value }}&text={{ urlencode('Halo, saya ingin bertanya tentang pesanan ' . $order->no_transaction) }}"
-                            target="_blank"
-                            class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-all text-center block">
-                            <i class="fab fa-whatsapp mr-2"></i>Hubungi CS
-                        </a>
-
-
                         @if ($order->status->order == '1')
+                            {{-- [PERBAIKAN] Tambahkan id dan data-url untuk JavaScript --}}
                             <button onclick="showCancelModal()"
-                                class="w-full border border-red-500 text-red-600 py-3 px-4 rounded-lg font-medium hover:bg-red-50 transition-all">
+                                data-url="{{ route('customer.order.cancel', $order->no_transaction) }}"
+                                id="cancel-order-button" class="w-full border border-red-500 ...">
                                 <i class="fas fa-times mr-2"></i>Batalkan Pesanan
                             </button>
+                        @else
+                            {{-- Keterangan tidak ada aksi untuk saat ini --}}
+                            <div class="w-full text-center text-gray-500 italic bg-gray-50 p-4 rounded-lg">
+                                Tidak ada tindakan yang tersedia untuk status pesanan ini.
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -353,17 +328,19 @@
                     <h3 class="font-semibold text-purple-800 mb-3">Butuh Bantuan?</h3>
                     <div class="space-y-3 text-sm text-purple-700">
                         <div class="flex items-center">
-                            <i class="fas fa-phone mr-3"></i>
+                            <i class="fab fa-whatsapp mr-3"></i>
                             <div>
                                 <p class="font-medium">Customer Service</p>
-                                <p>{{ $systemSetting['store_phone']->setting_value }}</p>
+                                {{-- [PERBAIKAN] Mengakses system setting sebagai array --}}
+                                <p>{{ $systemSetting['store_phone'] ?? 'Nomor tidak tersedia' }}</p>
                             </div>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-envelope mr-3"></i>
                             <div>
                                 <p class="font-medium">Email</p>
-                                <p>{{ $systemSetting['store_email']->setting_value }}</p>
+                                {{-- [PERBAIKAN] Mengakses system setting sebagai array --}}
+                                <p>{{ $systemSetting['store_email'] ?? 'Email tidak tersedia' }}</p>
                             </div>
                         </div>
                         <div class="flex items-center">
@@ -385,10 +362,8 @@
                 <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-3"></i>
                 <h3 class="text-xl font-bold text-gray-800">Batalkan Pesanan</h3>
             </div>
-
             <p class="text-gray-600 mb-4">Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat
                 dibatalkan.</p>
-
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Alasan Pembatalan</label>
                 <select id="cancel-reason"
@@ -402,7 +377,6 @@
                     <option value="Lainnya">Lainnya</option>
                 </select>
             </div>
-
             <div class="flex gap-3">
                 <button onclick="closeCancelModal()"
                     class="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50">
@@ -424,17 +398,20 @@
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-
             <div class="text-center">
-                <img src="{{ Storage::url($order->payment->proof_of_payment_url) ?? '' }}" alt="Bukti Pembayaran"
-                    class="max-w-full max-h-[70vh] h-auto rounded-lg mx-auto object-contain">
-                <p class="text-sm text-gray-600 mt-2">
-                    bukti transfer #{{ $order->no_transaction }}
-                </p>
+                {{-- [PERBAIKAN] Tambahkan @if untuk mencegah error jika $order->payment null --}}
+                @if ($order->payment)
+                    <img src="{{ Storage::url($order->payment->proof_of_payment_url) }}" alt="Bukti Pembayaran"
+                        class="max-w-full max-h-[70vh] h-auto rounded-lg mx-auto object-contain">
+                    <p class="text-sm text-gray-600 mt-2">
+                        bukti transfer #{{ $order->no_transaction }}
+                    </p>
+                @else
+                    <p class="text-gray-500 italic p-4">Bukti pembayaran tidak ditemukan.</p>
+                @endif
             </div>
         </div>
     </div>
-
 
     <script src="{{ asset('js/order/detailOrder.js') }}"></script>
 @endsection

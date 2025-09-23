@@ -159,6 +159,7 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
         Route::get('/order/history', 'history')->name('customer.order.history');
         Route::get('/order/{order:no_transaction}/detail', 'detail')->name('customer.order.detail');
         Route::put('/order/{order:no_transaction}/accepted', 'accepted')->name('customer.order.accepted');
+        Route::put('/order/{order:no_transaction}/cancel', 'cancel')->name('customer.order.cancel');
     });
     // // ---- End Order ---- //
 });

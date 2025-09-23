@@ -246,43 +246,204 @@ class CustomerOrderController extends Controller
             'event_type' => 'ORDER_COMPLETED',
             'message' => 'Pesanan telah diterima.',
         ]);
-        return redirect()->route('customer.order.detail', ['order' => $order->no_transaction]);
+        return redirect()->route('customer.order.detail', ['order' => $order->no_transaction])->with('success', 'Terima kasih telah mengonfirmasi penerimaan pesanan Anda!');
     }
 
-    public function myOrder()
+   public function myOrder(Request $request)
     {
-        $status = OrderStatus::where('order', '!=', '5')->where('order', '!=', '6')->where('order', '!=', '7')->orderBy('order', 'asc')->get();
-        $orders = Auth::user()->orders()->where('is_cancelled', '!=', true)->where('is_finish', '!=', true)->with(['status', 'paymentMethod', 'deliveryMethod', 'address', 'items.product'])->paginate(10)->withQueryString();
-        return view('customer.order.my-order', compact('orders', 'status'));
-    }
-
-    public function history()
-    {
-        // Ambil ID status untuk pesanan selesai, dibatalkan, dan gagal
-        $completedId = OrderStatus::where('order', 6)->value('id'); // ORDER_COMPLETED
-        $cancelledId = OrderStatus::where('order', 7)->value('id'); // ORDER_CANCELLED
-        $failedId = OrderStatus::where('order', 8)->value('id');    // ORDER_FAILED
-
-        // Ambil pesanan user dengan status tersebut
-        $orders = Auth::user()->orders()
-            ->whereIn('order_status_id', [$completedId, $cancelledId, $failedId])
-            ->with(['status', 'paymentMethod', 'deliveryMethod', 'address', 'items.product'])
-            ->latest()
-            ->paginate(10);
-
-        // Ambil status (jika dibutuhkan untuk filter UI)
-        $status = OrderStatus::whereIn('order', [6, 7, 8])
+        // Ambil semua status aktif yang BUKAN status akhir (selesai/batal/gagal)
+        $statuses = OrderStatus::where('is_active', true)
+            ->whereNotIn('status_name', ['Selesai', 'Dibatalkan', 'Gagal'])
             ->orderBy('order', 'asc')
             ->get();
 
-        return view('customer.order.history', compact('orders', 'status'));
+        // Query dasar untuk pesanan aktif
+        $ordersQuery = Auth::user()->orders()
+            ->where('is_finish', false)
+            ->where('is_cancelled', false)
+            ->with(['status', 'items.product']); // Eager load relasi yang dibutuhkan
+
+        // Terapkan filter PENCARIAN jika ada
+        $ordersQuery->when($request->filled('search'), function ($query) use ($request) {
+            $searchTerm = '%' . $request->search . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('no_transaction', 'like', $searchTerm)
+                ->orWhereHas('items.product', function ($q2) use ($searchTerm) {
+                    $q2->where('name', 'like', $searchTerm);
+                });
+            });
+        });
+
+        // Terapkan filter STATUS jika ada
+        $ordersQuery->when($request->filled('status'), function ($query) use ($request) {
+            $query->where('order_status_id', $request->status);
+        });
+
+        // Ambil data dengan paginasi
+        $orders = $ordersQuery->latest('order_date')->paginate(5)->withQueryString();
+
+        // Ambil semua status yang relevan untuk progress bar
+        $allActiveStatuses = OrderStatus::where('is_active', true)
+            ->whereNotIn('status_name', ['Dibatalkan', 'Gagal'])
+            ->orderBy('order', 'asc')
+            ->get();
+            
+        // Ambil pengaturan sistem sekali saja
+        $systemSetting = \App\Models\SystemSetting::where('is_active', true)->pluck('setting_value', 'setting_key');
+
+        return view('customer.order.my-order', compact('orders', 'statuses', 'allActiveStatuses', 'systemSetting'));
     }
 
+    public function history(Request $request)
+    {
+        // Define the statuses that are considered "history"
+        $historyStatusNames = ['Selesai', 'Dibatalkan', 'Gagal'];
+        $historyStatusIds = OrderStatus::whereIn('status_name', $historyStatusNames)->pluck('id');
+
+        // Base query for the user's historical orders
+        $query = Auth::user()->orders()
+            ->whereIn('order_status_id', $historyStatusIds)
+            ->with(['status', 'items.product']);
+
+        // --- Apply Filters ---
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $searchTerm = '%' . $request->search . '%';
+            $q->where('no_transaction', 'like', $searchTerm)
+            ->orWhereHas('items.product', fn($q2) => $q2->where('name', 'like', $searchTerm));
+        });
+
+        $query->when($request->filled('status'), function ($q) use ($request) {
+            $q->where('order_status_id', $request->status);
+        });
+
+        $query->when($request->filled('period'), function ($q) use ($request) {
+            $q->where('order_date', '>=', now()->subDays($request->period));
+        });
+
+        // --- Calculate Statistics AFTER applying filters ---
+        $statsQuery = clone $query;
+        $totalOrders = $statsQuery->count();
+        $totalSpending = (clone $statsQuery)->where('is_finish', true)->sum('total_amount');
+        $totalCancelled = (clone $statsQuery)->where('is_cancelled', true)->count();
+        
+        // --- Apply Sorting ---
+        $query->when($request->input('sort', 'newest'), function ($q, $sort) {
+            match ($sort) {
+                'oldest' => $q->orderBy('order_date', 'asc'),
+                'highest' => $q->orderBy('total_amount', 'desc'),
+                'lowest' => $q->orderBy('total_amount', 'asc'),
+                default => $q->orderBy('order_date', 'desc'),
+            };
+        });
+
+        // Get paginated results
+        $orders = $query->paginate(5)->withQueryString();
+
+        // Get statuses for the filter dropdown
+        $statuses = OrderStatus::whereIn('id', $historyStatusIds)->orderBy('order')->get();
+
+        return view('customer.order.history', compact(
+            'orders', 
+            'statuses', 
+            'totalOrders', 
+            'totalSpending',
+            'totalCancelled'
+        ));
+    }
 
     public function detail(Order $order)
     {
-        $systemSetting = SystemSetting::where('is_active', true)->get()->keyBy('setting_key');
-        $order->load(['user', 'status', 'deliveryMethod', 'address', 'items.product', 'paymentMethod', 'logs']);
-        return view('customer.order.detail', compact('order', 'systemSetting'));
+        // Pastikan pesanan ini milik user yang sedang login demi keamanan
+        abort_if($order->user_id !== Auth::id(), 403, 'Anda tidak diizinkan untuk melihat pesanan ini.');
+
+        // Ambil semua pengaturan sistem yang aktif
+        $systemSetting = SystemSetting::where('is_active', true)->pluck('setting_value', 'setting_key');
+
+        // Load semua relasi yang dibutuhkan dalam satu query untuk efisiensi
+        $order->load([
+            'user', 'status', 'deliveryMethod', 'address',
+            'items.product', 'paymentMethod', 'payment',
+            'logs' => fn ($query) => $query->orderBy('timestamp', 'asc')
+        ]);
+
+        // [BARU] Hitung tanggal kadaluarsa pembayaran jika statusnya menunggu pembayaran
+        $paymentExpiry = null;
+        if ($order->status->order == 1) { // Status: Menunggu Pembayaran
+            // Pastikan order_date adalah instance Carbon
+            $paymentExpiry = $order->order_date->addHours(24);
+        }
+
+        // [PERBAIKAN] Siapkan data untuk timeline status pesanan
+        $timeline = $this->prepareOrderTimeline($order);
+
+        return view('customer.order.detail', compact('order', 'systemSetting', 'paymentExpiry', 'timeline'));
+    }
+
+    /**
+     * Menyiapkan data timeline untuk ditampilkan di view.
+     * Logika ini dipindahkan dari Blade ke Controller untuk best practice.
+     *
+     * @param  \App\Models\Order  $order
+     * @return array
+     */
+    private function prepareOrderTimeline(Order $order): array
+    {
+        $allEvents = [
+            'ORDER_CREATED'          => 'Pesanan dibuat',
+            'PAYMENT_PROOF_UPLOADED' => 'Pelanggan mengunggah bukti pembayaran',
+            'PAYMENT_CONFIRMED'      => 'Pembayaran dikonfirmasi',
+            'ORDER_PROCESSED'        => 'Pesanan sedang diproses',
+            'DELIVERY_ASSIGNED'      => 'Pesanan siap diambil/sedang dikirim',
+            'ORDER_COMPLETED'        => 'Pesanan selesai',
+            'ORDER_CANCELLED'        => 'Pesanan dibatalkan',
+            'ORDER_FAILED'           => 'Pesanan gagal',
+        ];
+
+        $terminalEvents = ['ORDER_CANCELLED', 'ORDER_FAILED'];
+        $logs = $order->logs;
+        $completedEvents = $logs->pluck('event_type')->all();
+        $timeline = [];
+
+        // Cek apakah ada status terminal (dibatalkan/gagal) yang sudah terjadi
+        $hasTerminalEvent = collect($completedEvents)->intersect($terminalEvents)->first();
+
+        foreach ($allEvents as $eventType => $eventAlias) {
+            $isCompleted = in_array($eventType, $completedEvents);
+            $isTerminal = in_array($eventType, $terminalEvents);
+            $log = $isCompleted ? $logs->firstWhere('event_type', $eventType) : null;
+
+            // Jika sudah ada status terminal, jangan tampilkan status normal yang belum selesai
+            if ($hasTerminalEvent && !$isCompleted) {
+                // Tampilkan hanya event terminal yang terjadi, lalu berhenti
+                if ($eventType === $hasTerminalEvent) {
+                    $timeline[] = [
+                        'alias'       => $eventAlias,
+                        'log'         => $log,
+                        'status'      => 'completed',
+                        'is_terminal' => $isTerminal,
+                    ];
+                }
+                continue; // Lewati status normal lainnya
+            }
+            
+            // Jangan tampilkan status terminal jika belum terjadi
+            if ($isTerminal && !$isCompleted) {
+                continue;
+            }
+
+            $timeline[] = [
+                'alias'       => $eventAlias,
+                'log'         => $log,
+                'status'      => $isCompleted ? 'completed' : 'pending',
+                'is_terminal' => $isTerminal,
+            ];
+
+            // Jika event yang baru ditambahkan adalah terminal, hentikan proses looping
+            if ($isCompleted && $isTerminal) {
+                break;
+            }
+        }
+
+        return $timeline;
     }
 }

@@ -21,7 +21,8 @@
                         <div class="items-center hidden grid-cols-12 p-4 border-b border-gray-200 md:grid bg-gray-50">
                             {{-- Checkbox "Pilih Semua" --}}
                             <div class="col-span-1">
-                                <input type="checkbox" id="select-all" class="text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                                <input type="checkbox" id="select-all"
+                                    class="text-purple-600 border-gray-300 rounded focus:ring-purple-500">
                             </div>
                             <div class="col-span-4 font-medium text-gray-600">Produk</div>
                             <div class="col-span-2 font-medium text-center text-gray-600">Harga</div>
@@ -35,35 +36,52 @@
                                     <div class="flex flex-col md:flex-row md:items-center">
                                         <div class="flex items-center mb-4 md:w-5/12 md:mb-0">
                                             {{-- Checkbox per item --}}
-                                            <input type="checkbox" name="selected_items[]" value="{{ $item->id }}" class="mr-4 text-purple-600 border-gray-300 rounded item-checkbox focus:ring-purple-500">
+                                            <input type="checkbox" name="selected_items[]" value="{{ $item->id }}"
+                                                class="mr-4 text-purple-600 border-gray-300 rounded item-checkbox focus:ring-purple-500">
 
                                             {{-- ======================================================= --}}
                                             {{-- PERBAIKAN: Input hidden yang salah sudah dihapus dari sini --}}
                                             {{-- ======================================================= --}}
 
                                             <button type="button"
-                                                    class="mr-4 text-gray-400 remove-item-btn hover:text-red-500"
-                                                    data-url="{{ route('cart.remove', $item->id) }}">
+                                                class="mr-4 text-gray-400 remove-item-btn hover:text-red-500"
+                                                data-url="{{ route('cart.remove', $item->id) }}">
                                                 <i class="far fa-trash-alt"></i>
                                             </button>
 
-                                            <img src="{{ $item->product->image_url }}" alt="{{ $item->product->name }}" class="object-cover w-20 h-20 rounded-lg">
+                                            @if ($item->product->image_url)
+                                                <img src="{{ $item->product->image_url }}" alt="{{ $item->product->name }}"
+                                                    class="object-cover w-20 h-20 rounded-lg">
+                                            @else
+                                                <div
+                                                    class="flex items-center justify-center w-20 h-20 text-gray-300 bg-gray-100 rounded-lg">
+                                                    <i class="fas fa-image text-gray-400 text-3xl"></i>
+                                                </div>
+                                            @endif
+
                                             <div class="ml-4">
-                                                <h3 class="font-medium text-gray-800">{{ $item->product->name }}</h3>                                                
+                                                <h3 class="font-medium text-gray-800">{{ $item->product->name }}</h3>
                                             </div>
                                         </div>
                                         <div class="mb-4 text-center md:w-2/12 md:mb-0">
-                                            <span class="font-medium text-gray-800 item-price" data-price="{{ $item->product->price }}">
+                                            <span class="font-medium text-gray-800 item-price"
+                                                data-price="{{ $item->product->price }}">
                                                 {{ 'Rp ' . number_format($item->product->price, 0, ',', '.') }}
                                             </span>
                                         </div>
                                         <div class="mb-4 md:w-3/12 md:mb-0">
                                             <div class="flex items-center justify-center">
-                                                <button type="button" class="flex items-center justify-center w-8 h-8 border border-gray-300 rounded-l-md hover:bg-gray-100" onclick="decreaseQty(this)">
+                                                <button type="button"
+                                                    class="flex items-center justify-center w-8 h-8 border border-gray-300 rounded-l-md hover:bg-gray-100"
+                                                    onclick="decreaseQty(this)">
                                                     <i class="text-xs fas fa-minus"></i>
                                                 </button>
-                                                <input type="number" value="{{ $item->quantity }}" min="1" class="w-12 h-8 text-center border-t border-b border-gray-300 quantity-input" onchange="updateSubtotal(this)">
-                                                <button type="button" class="flex items-center justify-center w-8 h-8 border border-gray-300 rounded-r-md hover:bg-gray-100" onclick="increaseQty(this)">
+                                                <input type="number" value="{{ $item->quantity }}" min="1"
+                                                    class="w-12 h-8 text-center border-t border-b border-gray-300 quantity-input"
+                                                    onchange="updateSubtotal(this)">
+                                                <button type="button"
+                                                    class="flex items-center justify-center w-8 h-8 border border-gray-300 rounded-r-md hover:bg-gray-100"
+                                                    onclick="increaseQty(this)">
                                                     <i class="text-xs fas fa-plus"></i>
                                                 </button>
                                             </div>
@@ -80,7 +98,8 @@
                                     <i class="mb-4 text-6xl text-gray-300 fas fa-shopping-cart"></i>
                                     <h3 class="mb-2 text-xl font-bold text-gray-800">Keranjang Kosong</h3>
                                     <p class="mb-4 text-gray-600">Belum ada produk di keranjang belanja Anda</p>
-                                    <a href="{{ route('product') }}" class="px-6 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700">
+                                    <a href="{{ route('product') }}"
+                                        class="px-6 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700">
                                         Mulai Belanja
                                     </a>
                                 </div>
@@ -110,16 +129,21 @@
                             </div>
 
                             <div class="mt-8">
-                                <button type="submit" id="checkout-btn" class="block w-full px-6 py-3 font-bold text-center text-white transition-all rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <button type="submit" id="checkout-btn"
+                                    class="block w-full px-6 py-3 font-bold text-center text-white transition-all rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled>
                                     Pesan Sekarang
                                 </button>
                             </div>
 
                             <div class="pt-6 mt-6 border-t border-gray-200">
                                 <div class="text-sm text-gray-600">
-                                    <p class="mb-2"><i class="mr-2 text-green-500 fas fa-shield-alt"></i>Pembayaran aman & terjamin</p>
-                                    <p class="mb-2"><i class="mr-2 text-blue-500 fas fa-truck"></i>Pengiriman atau ambil di toko</p>
-                                    <p><i class="mr-2 text-orange-500 fas fa-clock"></i>Minimal {{ $min_preparation_days }} hari persiapan</p>
+                                    <p class="mb-2"><i class="mr-2 text-green-500 fas fa-shield-alt"></i>Pembayaran aman &
+                                        terjamin</p>
+                                    <p class="mb-2"><i class="mr-2 text-blue-500 fas fa-truck"></i>Pengiriman atau ambil
+                                        di toko</p>
+                                    <p><i class="mr-2 text-orange-500 fas fa-clock"></i>Minimal {{ $min_preparation_days }}
+                                        hari persiapan</p>
                                 </div>
                             </div>
                         </div>
@@ -224,7 +248,8 @@
                     const checkedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
                     const selectAllCheckbox = document.getElementById('select-all');
                     if (selectAllCheckbox) {
-                       selectAllCheckbox.checked = allCheckboxes.length > 0 && allCheckboxes.length === checkedCheckboxes.length;
+                        selectAllCheckbox.checked = allCheckboxes.length > 0 && allCheckboxes
+                            .length === checkedCheckboxes.length;
                     }
                 });
             });
@@ -253,41 +278,43 @@
 
                     if (confirm('Anda yakin ingin menghapus item ini dari keranjang?')) {
                         fetch(removeUrl, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken,
-                                'Accept': 'application/json'
-                            }
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.success) {
-                                cartItemElement.style.transition = 'opacity 0.5s, transform 0.5s';
-                                cartItemElement.style.opacity = '0';
-                                cartItemElement.style.transform = 'translateX(-20px)';
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept': 'application/json'
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    cartItemElement.style.transition =
+                                        'opacity 0.5s, transform 0.5s';
+                                    cartItemElement.style.opacity = '0';
+                                    cartItemElement.style.transform = 'translateX(-20px)';
 
-                                setTimeout(() => {
-                                    cartItemElement.remove();
-                                    updateTotal();
-                                    showAlert('Item berhasil dihapus', 'success');
-                                    if (document.querySelectorAll('.cart-item').length === 0) {
-                                        location.reload();
-                                    }
-                                }, 500);
+                                    setTimeout(() => {
+                                        cartItemElement.remove();
+                                        updateTotal();
+                                        showAlert('Item berhasil dihapus', 'success');
+                                        if (document.querySelectorAll('.cart-item')
+                                            .length === 0) {
+                                            location.reload();
+                                        }
+                                    }, 500);
 
-                            } else {
-                                showAlert(data.message || 'Gagal menghapus item', 'error');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            showAlert('Terjadi kesalahan saat menghapus item.', 'error');
-                        });
+                                } else {
+                                    showAlert(data.message || 'Gagal menghapus item', 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                showAlert('Terjadi kesalahan saat menghapus item.', 'error');
+                            });
                     }
                 });
             });

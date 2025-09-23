@@ -1,24 +1,3 @@
-@php
-    function hexToRgba($hex, $alpha = 0.15)
-    {
-        $hex = str_replace('#', '', $hex);
-        if (strlen($hex) == 3) {
-            $r = hexdec(str_repeat(substr($hex, 0, 1), 2));
-            $g = hexdec(str_repeat(substr($hex, 1, 1), 2));
-            $b = hexdec(str_repeat(substr($hex, 2, 1), 2));
-        } else {
-            $r = hexdec(substr($hex, 0, 2));
-            $g = hexdec(substr($hex, 2, 2));
-            $b = hexdec(substr($hex, 4, 2));
-        }
-        return "rgba($r, $g, $b, $alpha)";
-    }
-
-    function formatRupiah($amount)
-    {
-        return 'Rp ' . number_format($amount, 0, ',', '.');
-    }
-@endphp
 @extends('layouts.guest', ['title' => "Pembayaran $order->no_transaction"])
 
 @section('content')
@@ -212,10 +191,12 @@
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Biaya Pengiriman</span>
-                            <span class="font-medium">
-
-                                {{ $order->delivery_cost > 0 ? formatRupiah($order->delivery_cost) : 'Gratis' }}
-                            </span>
+                            @if ($order->deliveryMethod->is_pickup == true)
+                                <span class="font-medium text-green-600 text-end">Gratis</span>
+                            @else
+                                <span class="font-small text-gray-600 text-end">Sesuai Aplikasi <br>(Ditanggung
+                                    customer)</span>
+                            @endif
                         </div>
                         <div class="border-t border-gray-200 pt-3 flex justify-between">
                             <span class="font-bold text-gray-800">Total</span>

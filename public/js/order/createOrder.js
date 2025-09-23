@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Helper function untuk format angka ke Rupiah
-    function formatRupiah(number) {
-        return 'Rp ' + number.toLocaleString('id-ID');
-    }
+    // // Helper function untuk format angka ke Rupiah
+    // function formatRupiah(number) {
+    //     return 'Rp ' + number.toLocaleString('id-ID');
+    // }
 
     // Ambil subtotal dari data attribute
     const orderSummary = document.getElementById('order-summary');
